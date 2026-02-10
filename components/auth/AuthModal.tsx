@@ -21,7 +21,6 @@ export default function AuthModal({
   initialMode = "login",
 }: AuthModalProps) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
-  const [pseudo, setPseudo] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
@@ -30,7 +29,6 @@ export default function AuthModal({
   const { signUp, signIn } = useAuth();
 
   const resetForm = () => {
-    setPseudo("");
     setFirstName("");
     setLastName("");
     setPassword("");
@@ -46,16 +44,8 @@ export default function AuthModal({
     e.preventDefault();
     setError("");
 
-    if (!pseudo.trim()) {
-      setError("Le pseudo est requis");
-      return;
-    }
-    if (pseudo.trim().length < 2) {
-      setError("Le pseudo doit faire au moins 2 caractères");
-      return;
-    }
-    if (mode === "signup" && (!firstName.trim() || !lastName.trim())) {
-      setError("Le prénom et le nom de famille sont requis");
+    if (!firstName.trim() || !lastName.trim()) {
+      setError("Le prénom et le nom sont requis");
       return;
     }
     if (!password) {
@@ -70,9 +60,9 @@ export default function AuthModal({
     setLoading(true);
     try {
       if (mode === "signup") {
-        await signUp(pseudo, password, firstName, lastName);
+        await signUp(firstName, lastName, password);
       } else {
-        await signIn(pseudo, password);
+        await signIn(firstName, lastName, password);
       }
       resetForm();
       onClose();
@@ -118,35 +108,25 @@ export default function AuthModal({
             </div>
 
             <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-4">
-              <Input
-                label="Pseudo"
-                placeholder="Ton pseudo"
-                value={pseudo}
-                onChange={(e) => setPseudo(e.target.value)}
-                autoComplete="username"
-                autoCapitalize="off"
-              />
               {mode === "signup" && (
-                <>
-                  <p className="text-xs text-killer-200/50">
-                    Utilise ton vrai nom pour que les autres joueurs te reconnaissent
-                  </p>
-                  <Input
-                    label="Prénom"
-                    placeholder="Ton vrai prénom"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    autoComplete="given-name"
-                  />
-                  <Input
-                    label="Nom de famille"
-                    placeholder="Ton vrai nom"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    autoComplete="family-name"
-                  />
-                </>
+                <p className="text-xs text-killer-200/50">
+                  Utilise ton vrai nom pour que les autres joueurs te reconnaissent
+                </p>
               )}
+              <Input
+                label="Prénom"
+                placeholder="Ton prénom"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                autoComplete="given-name"
+              />
+              <Input
+                label="Nom de famille"
+                placeholder="Ton nom"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                autoComplete="family-name"
+              />
               <Input
                 label="Mot de passe"
                 type="password"

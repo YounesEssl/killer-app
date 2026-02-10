@@ -4,8 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
-function pseudoToEmail(pseudo: string) {
-  return `${pseudo.toLowerCase().trim()}@killer.app`;
+function nameToEmail(firstName: string, lastName: string) {
+  const clean = (s: string) =>
+    s.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-");
+  return `${clean(firstName)}.${clean(lastName)}@killer.app`;
 }
 
 export function useAuth() {
@@ -28,13 +30,12 @@ export function useAuth() {
   }, []);
 
   const signUp = useCallback(
-    async (pseudo: string, password: string, firstName: string, lastName: string) => {
+    async (firstName: string, lastName: string, password: string) => {
       const { data, error } = await supabase.auth.signUp({
-        email: pseudoToEmail(pseudo),
+        email: nameToEmail(firstName, lastName),
         password,
         options: {
           data: {
-            pseudo: pseudo.trim(),
             first_name: firstName.trim(),
             last_name: lastName.trim(),
           },
@@ -42,7 +43,7 @@ export function useAuth() {
       });
       if (error) {
         if (error.message.includes("already been registered")) {
-          throw new Error("Ce pseudo est déjà pris");
+          throw new Error("Un compte avec ce nom existe déjà");
         }
         throw new Error(error.message);
       }
@@ -51,14 +52,14 @@ export function useAuth() {
     []
   );
 
-  const signIn = useCallback(async (pseudo: string, password: string) => {
+  const signIn = useCallback(async (firstName: string, lastName: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: pseudoToEmail(pseudo),
+      email: nameToEmail(firstName, lastName),
       password,
     });
     if (error) {
       if (error.message.includes("Invalid login credentials")) {
-        throw new Error("Pseudo ou mot de passe incorrect");
+        throw new Error("Nom ou mot de passe incorrect");
       }
       throw new Error(error.message);
     }
@@ -70,10 +71,9 @@ export function useAuth() {
     setUser(null);
   }, []);
 
-  const pseudo = user?.user_metadata?.pseudo as string | undefined;
   const firstName = user?.user_metadata?.first_name as string | undefined;
   const lastName = user?.user_metadata?.last_name as string | undefined;
   const fullName = firstName && lastName ? `${firstName} ${lastName}` : undefined;
 
-  return { user, pseudo, firstName, lastName, fullName, loading, signUp, signIn, signOut };
+  return { user, firstName, lastName, fullName, loading, signUp, signIn, signOut };
 }

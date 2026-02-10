@@ -23,7 +23,7 @@ type AuthMode = "login" | "signup";
 
 export default function Home() {
   const { session, isLoading: sessionLoading } = useSession();
-  const { user, pseudo, loading: authLoading, signOut } = useAuth();
+  const { user, fullName, loading: authLoading, signOut } = useAuth();
   const router = useRouter();
   const [authModal, setAuthModal] = useState<AuthMode | null>(null);
 
@@ -80,7 +80,7 @@ export default function Home() {
           >
             <span className="text-sm text-killer-200/80">
               Connecté en tant que{" "}
-              <span className="font-semibold text-killer-400">{pseudo}</span>
+              <span className="font-semibold text-killer-400">{fullName}</span>
             </span>
             <button
               onClick={signOut}

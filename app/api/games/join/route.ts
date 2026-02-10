@@ -27,9 +27,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const firstName = user.user_metadata?.first_name;
-    const lastName = user.user_metadata?.last_name;
-    const playerName = firstName && lastName ? `${firstName} ${lastName}` : user.user_metadata?.pseudo;
+    const firstName = user.user_metadata?.first_name as string | undefined;
+    const lastName = user.user_metadata?.last_name as string | undefined;
+    if (!firstName || !lastName) {
+      return NextResponse.json(
+        { error: "Ton compte n'a pas de nom configuré" },
+        { status: 400 }
+      );
+    }
+    const playerName = `${firstName} ${lastName}`;
 
     const supabase = createServerClient();
 
