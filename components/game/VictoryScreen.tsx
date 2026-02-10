@@ -21,6 +21,7 @@ export default function VictoryScreen({
   currentPlayerId,
 }: VictoryScreenProps) {
   const isWinner = winner?.id === currentPlayerId;
+  const lastSurvivor = players.find((p) => p.is_alive) || null;
   const totalKills = players.reduce((sum, p) => sum + p.kill_count, 0);
   const gameDuration =
     game.started_at && game.finished_at
@@ -28,7 +29,7 @@ export default function VictoryScreen({
       : null;
 
   const handleShare = async () => {
-    const text = `🔪 KILLER - GAME OVER!\n\n👑 ${winner?.name} remporte la partie "${game.name}" avec ${winner?.kill_count} kill(s)!\n\n📊 ${players.length} joueurs • ${totalKills} éliminations${gameDuration ? ` • ${gameDuration}` : ""}`;
+    const text = `🔪 KILLER - GAME OVER!\n\n👑 ${winner?.name} remporte la partie "${game.name}" avec ${winner?.kill_count} kill(s)!\n🛡️ Dernier survivant : ${lastSurvivor?.name || "—"}\n\n📊 ${players.length} joueurs • ${totalKills} éliminations${gameDuration ? ` • ${gameDuration}` : ""}`;
 
     if (navigator.share) {
       try {
@@ -84,11 +85,31 @@ export default function VictoryScreen({
               )}
             </h2>
             <p className="text-killer-200/60">
-              Victoire avec{" "}
+              Meilleur killer avec{" "}
               <span className="text-killer-400 font-bold">
                 {winner.kill_count} kill{winner.kill_count > 1 ? "s" : ""}
               </span>
             </p>
+          </motion.div>
+        )}
+
+        {lastSurvivor && lastSurvivor.id !== winner?.id && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="glass rounded-xl p-4 flex items-center gap-3"
+          >
+            <span className="text-2xl">{lastSurvivor.avatar_emoji}</span>
+            <div className="text-left">
+              <p className="text-sm font-semibold text-foreground">
+                {lastSurvivor.name}
+                {lastSurvivor.id === currentPlayerId && (
+                  <span className="text-xs text-killer-500 ml-1">(toi)</span>
+                )}
+              </p>
+              <p className="text-xs text-killer-200/50">🛡️ Dernier survivant</p>
+            </div>
           </motion.div>
         )}
 

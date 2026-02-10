@@ -32,7 +32,7 @@ export function useGame(gameId: string) {
       .on(
         "postgres_changes",
         {
-          event: "UPDATE",
+          event: "*",
           schema: "public",
           table: "games",
           filter: `id=eq.${gameId}`,
@@ -41,9 +41,17 @@ export function useGame(gameId: string) {
           setGame(payload.new as Game);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR") {
+          console.error("[useGame] Realtime subscription error, falling back to polling");
+        }
+      });
+
+    // Fallback polling every 5s in case realtime doesn't work
+    const interval = setInterval(fetchGame, 5000);
 
     return () => {
+      clearInterval(interval);
       supabase.removeChannel(channel);
     };
   }, [gameId, fetchGame]);

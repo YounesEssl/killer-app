@@ -90,11 +90,6 @@ export default function DeathScreen({
               Voir le feed
             </Button>
           </Link>
-          <Link href={`/game/${gameId}/leaderboard`}>
-            <Button variant="ghost" fullWidth>
-              Voir le classement
-            </Button>
-          </Link>
         </motion.div>
       </motion.div>
     </div>

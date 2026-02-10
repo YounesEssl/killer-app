@@ -49,7 +49,7 @@ export function usePlayer(playerId: string | null) {
       .on(
         "postgres_changes",
         {
-          event: "UPDATE",
+          event: "*",
           schema: "public",
           table: "players",
           filter: `id=eq.${playerId}`,
@@ -70,9 +70,17 @@ export function usePlayer(playerId: string | null) {
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR") {
+          console.error("[usePlayer] Realtime subscription error, falling back to polling");
+        }
+      });
+
+    // Fallback polling every 5s
+    const interval = setInterval(fetchPlayer, 5000);
 
     return () => {
+      clearInterval(interval);
       supabase.removeChannel(channel);
     };
   }, [playerId, fetchPlayer]);

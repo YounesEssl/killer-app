@@ -164,11 +164,21 @@ export async function POST(request: Request) {
     let isGameOver = false;
     if (survivorsCount <= 1) {
       isGameOver = true;
+
+      // Winner = player with the most kills
+      const { data: topKiller } = await supabase
+        .from("players")
+        .select("id")
+        .eq("game_id", killer.game_id)
+        .order("kill_count", { ascending: false })
+        .limit(1)
+        .single();
+
       await supabase
         .from("games")
         .update({
           status: "finished" as const,
-          winner_id: killer.id,
+          winner_id: topKiller?.id ?? killer.id,
           finished_at: new Date().toISOString(),
         })
         .eq("id", killer.game_id);

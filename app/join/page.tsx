@@ -4,9 +4,9 @@ import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
 import CodeInput from "@/components/ui/CodeInput";
 import { useSession } from "@/hooks/useSession";
+import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -19,8 +19,8 @@ function JoinForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { saveSession } = useSession();
+  const { fullName } = useAuth();
   const [joinCode, setJoinCode] = useState("");
-  const [playerName, setPlayerName] = useState("");
   const [avatar, setAvatar] = useState("🎭");
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState("");
@@ -33,7 +33,7 @@ function JoinForm() {
   }, [searchParams]);
 
   const handleJoin = async () => {
-    if (!joinCode || !playerName.trim()) return;
+    if (!joinCode) return;
     setIsJoining(true);
     setError("");
 
@@ -43,7 +43,6 @@ function JoinForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           joinCode: joinCode.toUpperCase(),
-          playerName: playerName.trim(),
           avatarEmoji: avatar,
         }),
       });
@@ -86,6 +85,11 @@ function JoinForm() {
           <p className="text-killer-200/60 mt-1">
             Entre le code de la partie
           </p>
+          {fullName && (
+            <p className="text-sm text-killer-400 mt-2">
+              Tu rejoins en tant que <span className="font-semibold">{fullName}</span>
+            </p>
+          )}
         </div>
 
         <div className="space-y-5">
@@ -107,14 +111,6 @@ function JoinForm() {
               </div>
             )}
           </div>
-
-          <Input
-            label="Ton prénom"
-            placeholder="Comment tu t'appelles ?"
-            value={playerName}
-            onChange={(e) => setPlayerName(e.target.value)}
-            maxLength={20}
-          />
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-killer-200 font-[family-name:var(--font-display)]">
@@ -145,7 +141,7 @@ function JoinForm() {
           size="lg"
           fullWidth
           loading={isJoining}
-          disabled={joinCode.length < 6 || !playerName.trim()}
+          disabled={joinCode.length < 6}
           onClick={handleJoin}
         >
           Entrer dans la partie

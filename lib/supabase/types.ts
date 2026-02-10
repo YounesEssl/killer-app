@@ -24,6 +24,7 @@ export type Player = {
   kill_count: number;
   joined_at: string;
   died_at: string | null;
+  user_id: string | null;
 };
 
 export type KillEvent = {

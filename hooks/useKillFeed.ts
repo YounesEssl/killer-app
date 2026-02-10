@@ -38,9 +38,17 @@ export function useKillFeed(gameId: string) {
           setEvents((prev) => [payload.new as KillEvent, ...prev]);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR") {
+          console.error("[useKillFeed] Realtime subscription error, falling back to polling");
+        }
+      });
+
+    // Fallback polling every 5s
+    const interval = setInterval(fetchEvents, 5000);
 
     return () => {
+      clearInterval(interval);
       supabase.removeChannel(channel);
     };
   }, [gameId, fetchEvents]);

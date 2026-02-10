@@ -37,12 +37,32 @@ export default function GameLobby({ game, players: initialPlayers }: GameLobbyPr
           filter: `game_id=eq.${game.id}`,
         },
         (payload) => {
-          setPlayers((prev) => [...prev, payload.new as Player]);
+          setPlayers((prev) => {
+            const newPlayer = payload.new as Player;
+            if (prev.some((p) => p.id === newPlayer.id)) return prev;
+            return [...prev, newPlayer];
+          });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR") {
+          console.error("[GameLobby] Realtime subscription error, falling back to polling");
+        }
+      });
+
+    // Fallback polling every 5s
+    const fetchPlayers = async () => {
+      const { data } = await supabase
+        .from("players")
+        .select("*")
+        .eq("game_id", game.id)
+        .order("joined_at", { ascending: true });
+      if (data) setPlayers(data);
+    };
+    const interval = setInterval(fetchPlayers, 5000);
 
     return () => {
+      clearInterval(interval);
       supabase.removeChannel(channel);
     };
   }, [game.id]);

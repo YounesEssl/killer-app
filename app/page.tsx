@@ -3,20 +3,37 @@
 import { motion } from "framer-motion";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
-import { Crosshair, Zap, Eye, Target, Skull } from "lucide-react";
+import {
+  Crosshair,
+  Zap,
+  Eye,
+  Target,
+  Skull,
+  LogIn,
+  LogOut,
+  UserPlus,
+} from "lucide-react";
 import { useSession } from "@/hooks/useSession";
+import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import AuthModal from "@/components/auth/AuthModal";
+
+type AuthMode = "login" | "signup";
 
 export default function Home() {
-  const { session, isLoading } = useSession();
+  const { session, isLoading: sessionLoading } = useSession();
+  const { user, pseudo, loading: authLoading, signOut } = useAuth();
   const router = useRouter();
+  const [authModal, setAuthModal] = useState<AuthMode | null>(null);
 
   useEffect(() => {
-    if (!isLoading && session) {
+    if (!sessionLoading && session) {
       router.push(`/game/${session.gameId}`);
     }
-  }, [session, isLoading, router]);
+  }, [session, sessionLoading, router]);
+
+  const isLoading = sessionLoading || authLoading;
 
   if (isLoading) {
     return (
@@ -54,6 +71,26 @@ export default function Home() {
         transition={{ duration: 0.6 }}
         className="text-center relative z-10 max-w-sm w-full space-y-8"
       >
+        {/* Auth status bar */}
+        {user && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center justify-between glass rounded-xl px-4 py-2.5"
+          >
+            <span className="text-sm text-killer-200/80">
+              Connecté en tant que{" "}
+              <span className="font-semibold text-killer-400">{pseudo}</span>
+            </span>
+            <button
+              onClick={signOut}
+              className="p-1.5 rounded-lg hover:bg-surface-2 transition-colors text-killer-200/40 hover:text-killer-200/80"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+
         <div className="space-y-3">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -75,33 +112,63 @@ export default function Home() {
           </motion.p>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-          className="space-y-3"
-        >
-          <Link href="/join">
+        {user ? (
+          /* Logged in — show game actions */
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.5 }}
+            className="space-y-3"
+          >
+            <Link href="/join">
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                icon={<Crosshair className="w-5 h-5" />}
+              >
+                Rejoindre une partie
+              </Button>
+            </Link>
+            <Link href="/create">
+              <Button
+                variant="secondary"
+                size="lg"
+                fullWidth
+                icon={<Zap className="w-5 h-5" />}
+              >
+                Créer une partie
+              </Button>
+            </Link>
+          </motion.div>
+        ) : (
+          /* Not logged in — show auth actions */
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.5 }}
+            className="space-y-3"
+          >
             <Button
               variant="primary"
               size="lg"
               fullWidth
-              icon={<Crosshair className="w-5 h-5" />}
+              icon={<LogIn className="w-5 h-5" />}
+              onClick={() => setAuthModal("login")}
             >
-              Rejoindre une partie
+              Se connecter
             </Button>
-          </Link>
-          <Link href="/create">
             <Button
               variant="secondary"
               size="lg"
               fullWidth
-              icon={<Zap className="w-5 h-5" />}
+              icon={<UserPlus className="w-5 h-5" />}
+              onClick={() => setAuthModal("signup")}
             >
-              Créer une partie
+              Créer un compte
             </Button>
-          </Link>
-        </motion.div>
+          </motion.div>
+        )}
 
         <motion.div
           initial={{ opacity: 0 }}
@@ -133,6 +200,12 @@ export default function Home() {
           })}
         </motion.div>
       </motion.div>
+
+      <AuthModal
+        isOpen={authModal !== null}
+        onClose={() => setAuthModal(null)}
+        initialMode={authModal ?? "login"}
+      />
     </div>
   );
 }

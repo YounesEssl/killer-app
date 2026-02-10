@@ -1,17 +1,35 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
+import { createSSRClient } from "@/lib/supabase/ssr-server";
 import { generateKillCode } from "@/lib/utils";
 
 export async function POST(request: Request) {
   try {
-    const { joinCode, playerName, avatarEmoji } = await request.json();
+    const { joinCode, avatarEmoji } = await request.json();
 
-    if (!joinCode || !playerName) {
+    if (!joinCode) {
       return NextResponse.json(
-        { error: "Le code et le prénom sont requis" },
+        { error: "Le code de la partie est requis" },
         { status: 400 }
       );
     }
+
+    // Get authenticated user
+    const ssrClient = await createSSRClient();
+    const {
+      data: { user },
+    } = await ssrClient.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "Tu dois être connecté pour rejoindre une partie" },
+        { status: 401 }
+      );
+    }
+
+    const firstName = user.user_metadata?.first_name;
+    const lastName = user.user_metadata?.last_name;
+    const playerName = firstName && lastName ? `${firstName} ${lastName}` : user.user_metadata?.pseudo;
 
     const supabase = createServerClient();
 
@@ -70,6 +88,7 @@ export async function POST(request: Request) {
         mission_id: null,
         is_alive: true,
         kill_count: 0,
+        user_id: user.id,
       })
       .select()
       .single();

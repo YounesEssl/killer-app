@@ -2,20 +2,20 @@
 
 import { motion } from "framer-motion";
 import type { Player } from "@/lib/supabase/types";
+import { Shield } from "lucide-react";
 
 interface LeaderboardProps {
   players: Player[];
   currentPlayerId: string | null;
+  lastSurvivorId?: string | null;
 }
 
 export default function Leaderboard({
   players,
   currentPlayerId,
+  lastSurvivorId,
 }: LeaderboardProps) {
-  const sorted = [...players].sort((a, b) => {
-    if (a.is_alive !== b.is_alive) return a.is_alive ? -1 : 1;
-    return b.kill_count - a.kill_count;
-  });
+  const sorted = [...players].sort((a, b) => b.kill_count - a.kill_count);
 
   const medals = ["🥇", "🥈", "🥉"];
 
@@ -23,6 +23,7 @@ export default function Leaderboard({
     <div className="space-y-3">
       {sorted.map((player, index) => {
         const isCurrentPlayer = player.id === currentPlayerId;
+        const isLastSurvivor = player.id === lastSurvivorId;
 
         return (
           <motion.div
@@ -55,16 +56,24 @@ export default function Leaderboard({
                   }`}
                 />
               </span>
-              <span
-                className={`font-medium truncate ${
-                  isCurrentPlayer ? "text-killer-300" : "text-foreground"
-                } ${!player.is_alive ? "opacity-50" : ""}`}
-              >
-                {player.name}
-                {isCurrentPlayer && (
-                  <span className="text-xs text-killer-500 ml-1">(toi)</span>
+              <div className="flex flex-col min-w-0">
+                <span
+                  className={`font-medium truncate ${
+                    isCurrentPlayer ? "text-killer-300" : "text-foreground"
+                  } ${!player.is_alive ? "opacity-50" : ""}`}
+                >
+                  {player.name}
+                  {isCurrentPlayer && (
+                    <span className="text-xs text-killer-500 ml-1">(toi)</span>
+                  )}
+                </span>
+                {isLastSurvivor && (
+                  <span className="flex items-center gap-1 text-xs text-killer-400">
+                    <Shield className="w-3 h-3" />
+                    Dernier survivant
+                  </span>
                 )}
-              </span>
+              </div>
             </div>
 
             <div className="flex items-center gap-1 flex-shrink-0">

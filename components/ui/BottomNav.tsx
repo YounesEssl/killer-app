@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Crosshair, Skull, Trophy } from "lucide-react";
+import { Crosshair, Skull } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BottomNavProps {
@@ -24,12 +24,6 @@ export default function BottomNav({ gameId }: BottomNavProps) {
       icon: Skull,
       href: `/game/${gameId}/feed`,
       active: pathname === `/game/${gameId}/feed`,
-    },
-    {
-      label: "Classement",
-      icon: Trophy,
-      href: `/game/${gameId}/leaderboard`,
-      active: pathname === `/game/${gameId}/leaderboard`,
     },
   ];
 

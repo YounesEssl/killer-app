@@ -3,17 +3,29 @@
 import { use, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useSession } from "@/hooks/useSession";
+import { useGame } from "@/hooks/useGame";
 import type { Player } from "@/lib/supabase/types";
 import Leaderboard from "@/components/game/Leaderboard";
-import BottomNav from "@/components/ui/BottomNav";
 import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Button from "@/components/ui/Button";
 
 export default function LeaderboardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: gameId } = use(params);
   const { session } = useSession();
+  const { game } = useGame(gameId);
+  const router = useRouter();
   const [players, setPlayers] = useState<Player[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Redirect to game page if game is still active
+  useEffect(() => {
+    if (game && game.status !== "finished") {
+      router.replace(`/game/${gameId}`);
+    }
+  }, [game, gameId, router]);
 
   useEffect(() => {
     async function fetchPlayers() {
@@ -25,20 +37,9 @@ export default function LeaderboardPage({ params }: { params: Promise<{ id: stri
       setIsLoading(false);
     }
     fetchPlayers();
-
-    const channel = supabase
-      .channel(`leaderboard-${gameId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "players", filter: `game_id=eq.${gameId}` },
-        () => { fetchPlayers(); }
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
   }, [gameId]);
 
-  if (isLoading) {
+  if (isLoading || !game || game.status !== "finished") {
     return (
       <div className="min-h-dvh flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-killer-500 border-t-transparent rounded-full animate-spin" />
@@ -56,17 +57,22 @@ export default function LeaderboardPage({ params }: { params: Promise<{ id: stri
         <div className="flex items-center gap-3">
           <Trophy className="w-6 h-6 text-killer-400" />
           <h1 className="text-2xl font-bold font-[family-name:var(--font-display)]">
-            Classement
+            Classement final
           </h1>
         </div>
 
         <Leaderboard
           players={players}
           currentPlayerId={session?.playerId ?? null}
+          lastSurvivorId={players.find((p) => p.is_alive)?.id ?? null}
         />
-      </motion.div>
 
-      <BottomNav gameId={gameId} />
+        <Link href={`/game/${gameId}`}>
+          <Button variant="secondary" fullWidth>
+            Retour
+          </Button>
+        </Link>
+      </motion.div>
     </div>
   );
 }
