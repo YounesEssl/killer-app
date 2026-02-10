@@ -12,68 +12,41 @@ export function useSession() {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    async function init() {
-      // 1. Try localStorage first
-      const stored = localStorage.getItem("killer-session");
-      if (stored) {
-        try {
-          setSession(JSON.parse(stored));
-          setIsLoading(false);
-          return;
-        } catch {
-          localStorage.removeItem("killer-session");
-        }
+  const fetchSession = useCallback(async () => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setSession(null);
+        setIsLoading(false);
+        return;
       }
 
-      // 2. If no localStorage, try to recover from auth
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+      const { data: player } = await supabase
+        .from("players")
+        .select("id, game_id, games!inner(status)")
+        .eq("user_id", user.id)
+        .in("games.status", ["lobby", "active"])
+        .order("joined_at", { ascending: false })
+        .limit(1)
+        .single();
 
-        if (user) {
-          const { data: player } = await supabase
-            .from("players")
-            .select("id, game_id, games!inner(status)")
-            .eq("user_id", user.id)
-            .in("games.status", ["lobby", "active"])
-            .order("joined_at", { ascending: false })
-            .limit(1)
-            .single();
-
-          if (player) {
-            const recovered: Session = {
-              playerId: player.id,
-              gameId: player.game_id,
-            };
-            localStorage.setItem(
-              "killer-session",
-              JSON.stringify(recovered)
-            );
-            setSession(recovered);
-          }
-        }
-      } catch {
-        // No auth or no active game — that's fine
+      if (player) {
+        setSession({ playerId: player.id, gameId: player.game_id });
+      } else {
+        setSession(null);
       }
-
-      setIsLoading(false);
+    } catch {
+      setSession(null);
     }
-
-    init();
+    setIsLoading(false);
   }, []);
 
-  const saveSession = useCallback((playerId: string, gameId: string) => {
-    const newSession = { playerId, gameId };
-    localStorage.setItem("killer-session", JSON.stringify(newSession));
-    setSession(newSession);
-  }, []);
+  useEffect(() => {
+    fetchSession();
+  }, [fetchSession]);
 
-  const clearSession = useCallback(() => {
-    localStorage.removeItem("killer-session");
-    setSession(null);
-  }, []);
-
-  return { session, isLoading, saveSession, clearSession };
+  return { session, isLoading, refreshSession: fetchSession };
 }

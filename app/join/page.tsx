@@ -18,7 +18,7 @@ const AVATARS = [
 function JoinForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { saveSession } = useSession();
+  const { refreshSession } = useSession();
   const { fullName } = useAuth();
   const [joinCode, setJoinCode] = useState("");
   const [avatar, setAvatar] = useState("🎭");
@@ -55,7 +55,7 @@ function JoinForm() {
         return;
       }
 
-      saveSession(data.player.id, data.game.id);
+      await refreshSession();
       router.push(`/game/${data.game.id}`);
     } catch {
       setError("Erreur réseau");
