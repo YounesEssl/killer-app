@@ -5,7 +5,7 @@ import type { Player } from "@/lib/supabase/types";
 import { formatDuration } from "@/lib/utils";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
-import { Skull, Eye } from "lucide-react";
+import { Skull, Eye, RotateCcw } from "lucide-react";
 
 interface DeathScreenProps {
   player: Player;
@@ -87,6 +87,15 @@ export default function DeathScreen({
           <Link href={`/game/${gameId}/feed`}>
             <Button variant="secondary" fullWidth>
               Voir le feed
+            </Button>
+          </Link>
+          <Link href="/">
+            <Button
+              variant="secondary"
+              fullWidth
+              icon={<RotateCcw className="w-4 h-4" />}
+            >
+              Nouvelle partie
             </Button>
           </Link>
         </motion.div>

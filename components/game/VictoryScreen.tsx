@@ -5,7 +5,7 @@ import type { Player, Game } from "@/lib/supabase/types";
 import { formatDuration } from "@/lib/utils";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
-import { Share2, Trophy, Shield, Users, Skull, Clock } from "lucide-react";
+import { Share2, Trophy, Shield, Users, Skull, Clock, RotateCcw } from "lucide-react";
 import PlayerAvatar from "@/components/ui/PlayerAvatar";
 
 interface VictoryScreenProps {
@@ -165,6 +165,15 @@ export default function VictoryScreen({
           >
             Partager
           </Button>
+          <Link href="/">
+            <Button
+              variant="secondary"
+              fullWidth
+              icon={<RotateCcw className="w-4 h-4" />}
+            >
+              Nouvelle partie
+            </Button>
+          </Link>
         </motion.div>
       </motion.div>
     </div>
