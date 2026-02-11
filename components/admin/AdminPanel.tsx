@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import type { Game, Player, KillEvent } from "@/lib/supabase/types";
 import { getMissionById } from "@/lib/missions";
 import Card from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { formatRelativeTime } from "@/lib/utils";
 import { supabase } from "@/lib/supabase/client";
@@ -17,6 +15,7 @@ import {
   Eye,
   ArrowRight,
 } from "lucide-react";
+import PlayerAvatar from "@/components/ui/PlayerAvatar";
 
 interface AdminPanelProps {
   game: Game;
@@ -70,43 +69,43 @@ export default function AdminPanel({
   return (
     <div className="space-y-6 pb-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold font-[family-name:var(--font-display)]">
+        <h1 className="text-2xl font-bold font-[family-name:var(--font-display)] text-slate-900">
           Admin Panel
         </h1>
         <Badge variant={game.status === "active" ? "live" : game.status === "finished" ? "red" : "green"}>
-          {game.status === "lobby" ? "Lobby" : game.status === "active" ? "En cours" : "Terminé"}
+          {game.status === "lobby" ? "Lobby" : game.status === "active" ? "En cours" : "Termine"}
         </Badge>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
         <Card padding="sm">
           <div className="text-center">
-            <Users className="w-5 h-5 text-killer-400 mx-auto mb-1" />
-            <p className="text-xl font-bold font-[family-name:var(--font-display)]">{players.length}</p>
-            <p className="text-xs text-killer-200/50">joueurs</p>
+            <Users className="w-5 h-5 text-brand-500 mx-auto mb-1" />
+            <p className="text-xl font-bold font-[family-name:var(--font-display)] text-slate-900">{players.length}</p>
+            <p className="text-xs text-slate-400">joueurs</p>
           </div>
         </Card>
         <Card padding="sm">
           <div className="text-center">
-            <Play className="w-5 h-5 text-killer-400 mx-auto mb-1" />
-            <p className="text-xl font-bold font-[family-name:var(--font-display)]">{alivePlayers.length}</p>
-            <p className="text-xs text-killer-200/50">vivants</p>
+            <Play className="w-5 h-5 text-brand-500 mx-auto mb-1" />
+            <p className="text-xl font-bold font-[family-name:var(--font-display)] text-slate-900">{alivePlayers.length}</p>
+            <p className="text-xs text-slate-400">vivants</p>
           </div>
         </Card>
         <Card padding="sm">
           <div className="text-center">
-            <Skull className="w-5 h-5 text-danger-400 mx-auto mb-1" />
-            <p className="text-xl font-bold font-[family-name:var(--font-display)]">{deadPlayers.length}</p>
-            <p className="text-xs text-killer-200/50">morts</p>
+            <Skull className="w-5 h-5 text-rose-500 mx-auto mb-1" />
+            <p className="text-xl font-bold font-[family-name:var(--font-display)] text-slate-900">{deadPlayers.length}</p>
+            <p className="text-xs text-slate-400">morts</p>
           </div>
         </Card>
       </div>
 
       {game.status === "active" && (
         <Card>
-          <h2 className="text-lg font-bold font-[family-name:var(--font-display)] mb-3 flex items-center gap-2">
-            <Eye className="w-5 h-5 text-killer-400" />
-            Chaîne des assassinats
+          <h2 className="text-lg font-bold font-[family-name:var(--font-display)] text-slate-900 mb-3 flex items-center gap-2">
+            <Eye className="w-5 h-5 text-brand-500" />
+            Chaine des assassinats
           </h2>
           <div className="space-y-2">
             {alivePlayers.map((player) => {
@@ -115,15 +114,15 @@ export default function AdminPanel({
               return (
                 <div
                   key={player.id}
-                  className="flex items-center gap-2 p-2 rounded-lg bg-surface-2/50 text-sm"
+                  className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 text-sm"
                 >
-                  <span>{player.avatar_emoji}</span>
-                  <span className="font-medium">{player.name}</span>
-                  <ArrowRight className="w-3 h-3 text-killer-500 flex-shrink-0" />
-                  <span>{target?.avatar_emoji}</span>
-                  <span className="text-killer-200/60">{target?.name}</span>
+                  <PlayerAvatar avatarId={player.avatar_emoji} size="sm" />
+                  <span className="font-medium text-slate-900">{player.name}</span>
+                  <ArrowRight className="w-3 h-3 text-brand-500 flex-shrink-0" />
+                  <PlayerAvatar avatarId={target?.avatar_emoji || ""} size="sm" />
+                  <span className="text-slate-500">{target?.name}</span>
                   {mission && (
-                    <span className="text-xs text-killer-200/30 truncate ml-auto">
+                    <span className="text-xs text-slate-400 truncate ml-auto">
                       {mission.description}
                     </span>
                   )}
@@ -135,29 +134,29 @@ export default function AdminPanel({
       )}
 
       <Card>
-        <h2 className="text-lg font-bold font-[family-name:var(--font-display)] mb-3 flex items-center gap-2">
-          <Users className="w-5 h-5 text-killer-400" />
+        <h2 className="text-lg font-bold font-[family-name:var(--font-display)] text-slate-900 mb-3 flex items-center gap-2">
+          <Users className="w-5 h-5 text-brand-500" />
           Tous les joueurs
         </h2>
         <div className="space-y-2">
           {players.map((player) => (
             <div
               key={player.id}
-              className={`flex items-center gap-3 p-2 rounded-lg ${
-                player.is_alive ? "bg-surface-2/50" : "bg-surface-2/30 opacity-60"
+              className={`flex items-center gap-3 p-2.5 rounded-xl ${
+                player.is_alive ? "bg-slate-50" : "bg-slate-50 opacity-50"
               }`}
             >
-              <span className="text-xl">{player.avatar_emoji}</span>
+              <PlayerAvatar avatarId={player.avatar_emoji} size="md" />
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">{player.name}</p>
-                <p className="text-xs text-killer-200/40 font-[family-name:var(--font-mono)]">
+                <p className="font-medium text-sm truncate text-slate-900">{player.name}</p>
+                <p className="text-xs text-slate-400 font-[family-name:var(--font-mono)]">
                   Code: {player.kill_code}
                 </p>
               </div>
               <div className="text-right flex-shrink-0">
-                <p className="text-sm font-bold">{player.kill_count} kills</p>
+                <p className="text-sm font-bold text-slate-900">{player.kill_count} kills</p>
                 <span
-                  className={`text-xs ${player.is_alive ? "text-killer-400" : "text-danger-400"}`}
+                  className={`text-xs ${player.is_alive ? "text-brand-600" : "text-rose-500"}`}
                 >
                   {player.is_alive ? "Vivant" : "Mort"}
                 </span>
@@ -169,26 +168,26 @@ export default function AdminPanel({
 
       {events.length > 0 && (
         <Card>
-          <h2 className="text-lg font-bold font-[family-name:var(--font-display)] mb-3 flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-killer-400" />
+          <h2 className="text-lg font-bold font-[family-name:var(--font-display)] text-slate-900 mb-3 flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-brand-500" />
             Timeline des kills
           </h2>
           <div className="space-y-2">
             {events.map((event) => (
               <div
                 key={event.id}
-                className="flex items-center gap-3 p-2 rounded-lg bg-surface-2/50 text-sm"
+                className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 text-sm"
               >
-                <Skull className="w-4 h-4 text-danger-400 flex-shrink-0" />
+                <Skull className="w-4 h-4 text-rose-500 flex-shrink-0" />
                 <div className="flex-1">
-                  <p>
+                  <p className="text-slate-900">
                     <span className="font-medium">{getPlayerName(event.killer_id)}</span>
-                    {" "}a éliminé{" "}
-                    <span className="text-danger-400">{getPlayerName(event.victim_id)}</span>
+                    {" "}a elimine{" "}
+                    <span className="text-rose-500">{getPlayerName(event.victim_id)}</span>
                   </p>
-                  <p className="text-xs text-killer-200/40">{event.mission_description}</p>
+                  <p className="text-xs text-slate-400">{event.mission_description}</p>
                 </div>
-                <span className="text-xs text-killer-200/40 flex-shrink-0">
+                <span className="text-xs text-slate-400 flex-shrink-0">
                   {formatRelativeTime(event.killed_at)}
                 </span>
               </div>

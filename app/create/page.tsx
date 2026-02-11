@@ -5,11 +5,13 @@ import { motion } from "framer-motion";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Card from "@/components/ui/Card";
-import { ArrowLeft, Copy, Share2 } from "lucide-react";
+import { ArrowLeft, Copy, Share2, Zap } from "lucide-react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
+import ConnectedAs from "@/components/ui/ConnectedAs";
+import AuthGuard from "@/components/auth/AuthGuard";
 
-export default function CreatePage() {
+function CreatePageContent() {
   const [name, setName] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -46,7 +48,7 @@ export default function CreatePage() {
       setCreatedGame({ id: data.id, join_code: data.join_code });
       setIsCreating(false);
     } catch {
-      setError("Erreur réseau");
+      setError("Erreur reseau");
       setIsCreating(false);
     }
   };
@@ -61,7 +63,7 @@ export default function CreatePage() {
   const handleShare = async () => {
     if (!createdGame) return;
     const url = `${window.location.origin}/join?code=${createdGame.join_code}`;
-    const text = `🔪 Rejoins la partie "${name}" !\nCode: ${createdGame.join_code}\n${url}`;
+    const text = `Rejoins la partie "${name}" !\nCode: ${createdGame.join_code}\n${url}`;
 
     if (navigator.share) {
       try {
@@ -80,31 +82,32 @@ export default function CreatePage() {
 
   if (createdGame) {
     return (
-      <div className="min-h-dvh px-6 py-8 flex flex-col items-center justify-center max-w-sm mx-auto">
+      <div className="min-h-dvh px-6 py-8 flex flex-col items-center justify-center max-w-sm mx-auto bg-white">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
+          transition={{ ease: [0.22, 1, 0.36, 1], duration: 0.5 }}
           className="w-full space-y-6 text-center"
         >
           <div className="space-y-2">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring" }}
-              className="text-5xl"
+              transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 15 }}
+              className="w-16 h-16 rounded-full bg-brand-100 flex items-center justify-center mx-auto"
             >
-              ⚡
+              <Zap className="w-8 h-8 text-brand-600" />
             </motion.div>
-            <h1 className="text-2xl font-bold font-[family-name:var(--font-display)]">
-              Partie créée !
+            <h1 className="text-2xl font-bold font-[family-name:var(--font-display)] text-slate-900">
+              Partie creee !
             </h1>
-            <p className="text-killer-200/60 text-sm">
+            <p className="text-slate-500 text-sm">
               Partage ce code avec les joueurs
             </p>
           </div>
 
           <Card glow className="py-8">
-            <p className="text-5xl font-black font-[family-name:var(--font-mono)] text-killer-400 tracking-[0.3em]">
+            <p className="text-5xl font-black font-[family-name:var(--font-mono)] text-brand-600 tracking-[0.3em]">
               {createdGame.join_code}
             </p>
           </Card>
@@ -116,7 +119,7 @@ export default function CreatePage() {
               onClick={handleCopy}
               icon={<Copy className="w-4 h-4" />}
             >
-              {copied ? "Copié !" : "Copier"}
+              {copied ? "Copie !" : "Copier"}
             </Button>
             <Button
               variant="secondary"
@@ -129,17 +132,17 @@ export default function CreatePage() {
           </div>
 
           <div className="flex flex-col items-center gap-3">
-            <div className="bg-white p-3 rounded-xl">
+            <div className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
               <QRCodeSVG value={joinUrl} size={160} />
             </div>
-            <p className="text-xs text-killer-200/40">
+            <p className="text-xs text-slate-400">
               Scanne pour rejoindre
             </p>
           </div>
 
           <Link href={`/join?code=${createdGame.join_code}`}>
             <Button variant="primary" size="lg" fullWidth>
-              Rejoindre le lobby →
+              Rejoindre le lobby
             </Button>
           </Link>
         </motion.div>
@@ -148,25 +151,29 @@ export default function CreatePage() {
   }
 
   return (
-    <div className="min-h-dvh px-6 py-8 flex flex-col max-w-sm mx-auto">
-      <Link
-        href="/"
-        className="flex items-center gap-2 text-killer-200/60 hover:text-killer-200 transition-colors mb-8"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span className="text-sm">Retour</span>
-      </Link>
+    <div className="min-h-dvh px-6 py-8 flex flex-col max-w-sm mx-auto bg-white">
+      <div className="flex items-center justify-between mb-8">
+        <Link
+          href="/"
+          className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm">Retour</span>
+        </Link>
+        <ConnectedAs />
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ ease: [0.22, 1, 0.36, 1], duration: 0.5 }}
         className="space-y-6"
       >
         <div>
-          <h1 className="text-3xl font-bold font-[family-name:var(--font-display)]">
-            Créer une partie
+          <h1 className="text-3xl font-bold font-[family-name:var(--font-display)] text-slate-900">
+            Creer une partie
           </h1>
-          <p className="text-killer-200/60 mt-1">
+          <p className="text-slate-500 mt-1">
             Configure ta partie de Killer
           </p>
         </div>
@@ -181,11 +188,11 @@ export default function CreatePage() {
           <Input
             label="Mot de passe admin"
             type="password"
-            placeholder="Pour accéder au panel admin"
+            placeholder="Pour acceder au panel admin"
             value={adminPassword}
             onChange={(e) => setAdminPassword(e.target.value)}
           />
-          {error && <p className="text-sm text-danger-400">{error}</p>}
+          {error && <p className="text-sm text-rose-500">{error}</p>}
         </div>
 
         <Button
@@ -196,9 +203,17 @@ export default function CreatePage() {
           disabled={!name.trim() || !adminPassword.trim()}
           onClick={handleCreate}
         >
-          Créer la partie
+          Creer la partie
         </Button>
       </motion.div>
     </div>
+  );
+}
+
+export default function CreatePage() {
+  return (
+    <AuthGuard>
+      <CreatePageContent />
+    </AuthGuard>
   );
 }

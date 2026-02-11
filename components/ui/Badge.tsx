@@ -16,31 +16,31 @@ export default function Badge({
   pulse = false,
 }: BadgeProps) {
   const variants = {
-    green: "bg-killer-900/50 text-killer-300 border-killer-700/30",
-    red: "bg-danger-600/20 text-danger-400 border-danger-600/30",
-    neutral: "bg-surface-2 text-killer-200 border-border",
-    live: "bg-danger-600/20 text-danger-400 border-danger-600/30",
+    green: "bg-brand-100 text-brand-700",
+    red: "bg-rose-50 text-rose-600",
+    neutral: "bg-slate-100 text-slate-600",
+    live: "bg-brand-100 text-brand-700",
   };
 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border",
+        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-widest",
         "font-[family-name:var(--font-display)]",
         variants[variant],
         className
       )}
     >
       {variant === "live" && (
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-danger-500 opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-danger-500" />
+        <span className="relative flex h-1.5 w-1.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-500 opacity-75" />
+          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-500" />
         </span>
       )}
       {pulse && variant !== "live" && (
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-killer-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-killer-400" />
+        <span className="relative flex h-1.5 w-1.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75" />
+          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-400" />
         </span>
       )}
       {children}

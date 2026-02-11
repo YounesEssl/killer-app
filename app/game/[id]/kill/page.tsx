@@ -6,12 +6,23 @@ import { useRouter } from "next/navigation";
 import { useSession } from "@/hooks/useSession";
 import CodeInput from "@/components/ui/CodeInput";
 import Button from "@/components/ui/Button";
-import { ArrowLeft, Check, X } from "lucide-react";
+import { ArrowLeft, Check, X, Skull, Trophy } from "lucide-react";
 import Link from "next/link";
+import ConnectedAs from "@/components/ui/ConnectedAs";
+import AuthGuard from "@/components/auth/AuthGuard";
+import PlayerAvatar from "@/components/ui/PlayerAvatar";
 
 type KillState = "input" | "loading" | "success" | "error";
 
 export default function KillPage({ params }: { params: Promise<{ id: string }> }) {
+  return (
+    <AuthGuard>
+      <KillPageContent params={params} />
+    </AuthGuard>
+  );
+}
+
+function KillPageContent({ params }: { params: Promise<{ id: string }> }) {
   const { id: gameId } = use(params);
   const router = useRouter();
   const { session } = useSession();
@@ -61,13 +72,13 @@ export default function KillPage({ params }: { params: Promise<{ id: string }> }
       }, 3500);
     } catch {
       setState("error");
-      setError("Erreur réseau");
+      setError("Erreur reseau");
       setTimeout(() => setState("input"), 2000);
     }
   };
 
   return (
-    <div className="min-h-dvh px-6 py-8 max-w-sm mx-auto relative">
+    <div className="min-h-dvh px-6 py-8 max-w-sm mx-auto relative bg-white">
       {/* Kill flash overlay */}
       <AnimatePresence>
         {state === "success" && (
@@ -75,7 +86,7 @@ export default function KillPage({ params }: { params: Promise<{ id: string }> }
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-danger-600/20 pointer-events-none kill-flash"
+            className="fixed inset-0 z-50 bg-brand-500/10 pointer-events-none kill-flash"
           />
         )}
       </AnimatePresence>
@@ -87,24 +98,26 @@ export default function KillPage({ params }: { params: Promise<{ id: string }> }
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ ease: [0.22, 1, 0.36, 1] }}
             className="space-y-8"
           >
             <div className="flex items-center justify-between">
               <Link
                 href={`/game/${gameId}`}
-                className="flex items-center gap-2 text-killer-200/60 hover:text-killer-200 transition-colors"
+                className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span className="text-sm">Annuler</span>
               </Link>
+              <ConnectedAs />
             </div>
 
             <div className="text-center space-y-2 pt-8">
-              <h1 className="text-2xl font-bold font-[family-name:var(--font-display)]">
+              <h1 className="text-2xl font-bold font-[family-name:var(--font-display)] text-slate-900">
                 Entre le code de ta victime
               </h1>
-              <p className="text-killer-200/60 text-sm">
-                Demande son code à 4 chiffres
+              <p className="text-slate-500 text-sm">
+                Demande son code a 4 chiffres
               </p>
             </div>
 
@@ -120,7 +133,7 @@ export default function KillPage({ params }: { params: Promise<{ id: string }> }
 
             {state === "loading" && (
               <div className="flex justify-center">
-                <div className="w-6 h-6 border-2 border-killer-500 border-t-transparent rounded-full animate-spin" />
+                <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
               </div>
             )}
 
@@ -128,7 +141,8 @@ export default function KillPage({ params }: { params: Promise<{ id: string }> }
               <motion.p
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-center text-danger-400 text-sm"
+                transition={{ ease: [0.22, 1, 0.36, 1] }}
+                className="text-center text-rose-500 text-sm"
               >
                 {error}
               </motion.p>
@@ -139,35 +153,35 @@ export default function KillPage({ params }: { params: Promise<{ id: string }> }
             key="success"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: "spring", bounce: 0.4 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
             className="flex flex-col items-center justify-center min-h-[80vh] space-y-6"
           >
             <motion.div
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
-              transition={{ delay: 0.2, type: "spring" }}
-              className="w-20 h-20 rounded-full bg-danger-600/20 flex items-center justify-center"
+              transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 15 }}
+              className="w-20 h-20 rounded-full bg-brand-100 flex items-center justify-center"
             >
-              <span className="text-4xl">☠️</span>
+              <Check className="w-10 h-10 text-brand-600" />
             </motion.div>
 
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="text-3xl font-black text-danger-500 font-[family-name:var(--font-display)]"
+              transition={{ delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="text-3xl font-black text-brand-600 font-[family-name:var(--font-display)]"
             >
-              KILL CONFIRMÉ
+              KILL CONFIRME
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="text-killer-200/60"
+              transition={{ delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="text-slate-500"
             >
               {result.killCount} kill{result.killCount > 1 ? "s" : ""} au total
-              {" • "}
+              {" - "}
               {result.survivorsCount} survivant{result.survivorsCount > 1 ? "s" : ""}
             </motion.p>
 
@@ -175,26 +189,30 @@ export default function KillPage({ params }: { params: Promise<{ id: string }> }
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.8 }}
+                transition={{ delay: 0.8, type: "spring" }}
                 className="text-center space-y-2"
               >
-                <p className="text-4xl">👑</p>
-                <p className="text-xl font-bold text-killer-400 font-[family-name:var(--font-display)]">
-                  Tu as gagné !
+                <div className="w-16 h-16 rounded-full bg-brand-100 flex items-center justify-center mx-auto">
+                  <Trophy className="w-8 h-8 text-brand-600" />
+                </div>
+                <p className="text-xl font-bold text-brand-600 font-[family-name:var(--font-display)]">
+                  Tu as gagne !
                 </p>
               </motion.div>
             ) : result.newTarget ? (
               <motion.div
                 initial={{ opacity: 0, y: 20, rotateY: 90 }}
                 animate={{ opacity: 1, y: 0, rotateY: 0 }}
-                transition={{ delay: 0.8, duration: 0.5 }}
-                className="glass glow-green rounded-2xl p-5 w-full text-center space-y-2"
+                transition={{ delay: 0.8, ease: [0.22, 1, 0.36, 1], duration: 0.5 }}
+                className="bg-white rounded-3xl border-2 border-brand-200 shadow-brand p-5 w-full text-center space-y-2"
               >
-                <p className="text-xs uppercase tracking-widest text-killer-500 font-[family-name:var(--font-display)]">
+                <p className="text-xs uppercase tracking-widest text-brand-600 font-[family-name:var(--font-display)] font-bold">
                   Nouvelle cible
                 </p>
-                <p className="text-3xl">{result.newTarget.avatar_emoji}</p>
-                <p className="text-xl font-bold font-[family-name:var(--font-display)]">
+                <div className="mx-auto w-fit">
+                  <PlayerAvatar avatarId={result.newTarget.avatar_emoji} size="lg" />
+                </div>
+                <p className="text-xl font-bold font-[family-name:var(--font-display)] text-slate-900">
                   {result.newTarget.name}
                 </p>
               </motion.div>
@@ -206,16 +224,17 @@ export default function KillPage({ params }: { params: Promise<{ id: string }> }
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ ease: [0.22, 1, 0.36, 1] }}
             className="flex flex-col items-center justify-center min-h-[80vh] space-y-4"
           >
             <motion.div
               animate={{ x: [0, -10, 10, -10, 10, 0] }}
               transition={{ duration: 0.4 }}
-              className="w-16 h-16 rounded-full bg-danger-600/20 flex items-center justify-center"
+              className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center"
             >
-              <X className="w-8 h-8 text-danger-400" />
+              <X className="w-8 h-8 text-rose-500" />
             </motion.div>
-            <p className="text-lg font-bold text-danger-400 font-[family-name:var(--font-display)]">
+            <p className="text-lg font-bold text-rose-500 font-[family-name:var(--font-display)]">
               {error}
             </p>
           </motion.div>

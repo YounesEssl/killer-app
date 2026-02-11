@@ -28,12 +28,13 @@ export default function Card({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ ease: [0.22, 1, 0.36, 1], duration: 0.4 }}
+      whileHover={hover ? { y: -2 } : undefined}
       className={cn(
-        "glass rounded-2xl",
+        "bg-white rounded-3xl border border-slate-100 shadow-sm",
         paddingStyles[padding],
-        glow && "glow-green",
-        hover && "hover:border-border-strong transition-all duration-200",
+        glow && "border-brand-200 shadow-brand",
+        hover && "hover:shadow-md transition-all",
         className
       )}
     >

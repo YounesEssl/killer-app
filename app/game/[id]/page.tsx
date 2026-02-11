@@ -13,8 +13,19 @@ import PlayerDashboard from "@/components/game/PlayerDashboard";
 import DeathScreen from "@/components/game/DeathScreen";
 import VictoryScreen from "@/components/game/VictoryScreen";
 import BottomNav from "@/components/ui/BottomNav";
+import { AlertCircle, Lock } from "lucide-react";
+import ConnectedAs from "@/components/ui/ConnectedAs";
+import AuthGuard from "@/components/auth/AuthGuard";
 
 export default function GamePage({ params }: { params: Promise<{ id: string }> }) {
+  return (
+    <AuthGuard>
+      <GamePageContent params={params} />
+    </AuthGuard>
+  );
+}
+
+function GamePageContent({ params }: { params: Promise<{ id: string }> }) {
   const { id: gameId } = use(params);
   const router = useRouter();
   const { session, isLoading: sessionLoading } = useSession();
@@ -53,23 +64,25 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
 
   if (isLoading) {
     return (
-      <div className="min-h-dvh flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-killer-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-dvh flex items-center justify-center bg-white">
+        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!game) {
     return (
-      <div className="min-h-dvh flex items-center justify-center px-6">
+      <div className="min-h-dvh flex items-center justify-center px-6 bg-white">
         <div className="text-center space-y-3">
-          <p className="text-xl">😵</p>
-          <p className="text-killer-200/60">Partie introuvable</p>
+          <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mx-auto">
+            <AlertCircle className="w-6 h-6 text-slate-400" />
+          </div>
+          <p className="text-slate-500">Partie introuvable</p>
           <button
             onClick={() => router.push("/")}
-            className="text-killer-400 text-sm underline"
+            className="text-brand-600 text-sm font-semibold"
           >
-            Retour à l&apos;accueil
+            Retour a l&apos;accueil
           </button>
         </div>
       </div>
@@ -97,13 +110,15 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
   // Active game - need player session
   if (!session || !player) {
     return (
-      <div className="min-h-dvh flex items-center justify-center px-6">
+      <div className="min-h-dvh flex items-center justify-center px-6 bg-white">
         <div className="text-center space-y-3">
-          <p className="text-xl">🔐</p>
-          <p className="text-killer-200/60">Session expirée</p>
+          <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mx-auto">
+            <Lock className="w-6 h-6 text-slate-400" />
+          </div>
+          <p className="text-slate-500">Session expiree</p>
           <button
             onClick={() => router.push("/join?code=" + game.join_code)}
-            className="text-killer-400 text-sm underline"
+            className="text-brand-600 text-sm font-semibold"
           >
             Retrouver ma session
           </button>
@@ -131,7 +146,10 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
   const mission = player.mission_id ? getMissionById(player.mission_id) ?? null : null;
 
   return (
-    <div className="min-h-dvh px-4 py-6 max-w-lg mx-auto">
+    <div className="min-h-dvh px-5 py-6 max-w-lg mx-auto bg-white">
+      <div className="mb-4">
+        <ConnectedAs />
+      </div>
       <PlayerDashboard
         player={player}
         target={target}

@@ -7,7 +7,7 @@ import type { Mission } from "@/lib/missions";
 import SurvivorCount from "./SurvivorCount";
 import MissionCard from "./MissionCard";
 import KillButton from "./KillButton";
-import { Eye, EyeOff, Shield } from "lucide-react";
+import { Eye, EyeOff, Lock } from "lucide-react";
 
 interface PlayerDashboardProps {
   player: Player;
@@ -33,6 +33,7 @@ export default function PlayerDashboard({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
+        transition={{ ease: [0.22, 1, 0.36, 1], duration: 0.4 }}
         className="flex items-center justify-between"
       >
         <SurvivorCount alive={survivorsCount} total={totalPlayers} />
@@ -51,30 +52,30 @@ export default function PlayerDashboard({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="glass rounded-xl p-4"
+        transition={{ ease: [0.22, 1, 0.36, 1], duration: 0.4, delay: 0.5 }}
+        className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-killer-200/40" />
-            <span className="text-sm text-killer-200/60">Ton code secret</span>
+            <Lock className="w-4 h-4 text-slate-400" />
+            <span className="text-sm text-slate-500">Ton code secret</span>
           </div>
           <button
             onClick={() => setShowCode(!showCode)}
-            className="p-2 rounded-lg hover:bg-surface-2 transition-colors"
+            className="p-2 rounded-xl hover:bg-slate-50 transition-colors"
           >
             {showCode ? (
-              <EyeOff className="w-4 h-4 text-killer-200/40" />
+              <EyeOff className="w-4 h-4 text-slate-400" />
             ) : (
-              <Eye className="w-4 h-4 text-killer-200/40" />
+              <Eye className="w-4 h-4 text-slate-400" />
             )}
           </button>
         </div>
-        <p className="text-2xl font-bold font-[family-name:var(--font-mono)] text-killer-300 mt-2 tracking-widest">
-          {showCode ? player.kill_code : "••••"}
+        <p className="text-2xl font-bold font-[family-name:var(--font-mono)] text-brand-600 mt-2 tracking-widest">
+          {showCode ? player.kill_code : "****"}
         </p>
-        <p className="text-xs text-killer-200/30 mt-1">
-          Donne ce code à ton killer si tu te fais éliminer
+        <p className="text-xs text-slate-400 mt-1">
+          Donne ce code a ton killer si tu te fais eliminer
         </p>
       </motion.div>
     </div>

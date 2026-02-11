@@ -104,16 +104,16 @@ export default function CodeInput({
           disabled={disabled}
           autoFocus={index === 0}
           className={cn(
-            "w-14 h-16 text-center text-2xl font-bold rounded-xl",
-            "bg-surface-2 border-2 transition-all duration-200",
+            "w-14 h-16 text-center text-2xl font-bold rounded-2xl",
+            "bg-slate-50 border-2 transition-all",
             "font-[family-name:var(--font-mono)]",
             "focus:outline-none",
             "disabled:opacity-50",
             error
-              ? "border-danger-500 text-danger-400"
+              ? "border-rose-300 text-rose-600"
               : values[index]
-              ? "border-killer-500 text-killer-300 glow-green"
-              : "border-border text-foreground focus:border-killer-500 focus:ring-1 focus:ring-killer-500/30"
+              ? "border-brand-500 text-brand-700 shadow-brand"
+              : "border-slate-100 text-slate-900 focus:border-brand-500 focus:bg-white"
           )}
         />
       ))}

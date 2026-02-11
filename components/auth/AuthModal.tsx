@@ -45,7 +45,7 @@ export default function AuthModal({
     setError("");
 
     if (!firstName.trim() || !lastName.trim()) {
-      setError("Le prénom et le nom sont requis");
+      setError("Le prenom et le nom sont requis");
       return;
     }
     if (!password) {
@@ -53,7 +53,7 @@ export default function AuthModal({
       return;
     }
     if (password.length < 6) {
-      setError("Le mot de passe doit faire au moins 6 caractères");
+      setError("Le mot de passe doit faire au moins 6 caracteres");
       return;
     }
 
@@ -81,41 +81,41 @@ export default function AuthModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/60"
+            className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm"
             onClick={onClose}
           />
           <motion.div
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 z-50 glass-strong rounded-t-3xl max-h-[85vh] overflow-auto pb-safe"
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl max-h-[85vh] overflow-auto pb-safe"
           >
             <div className="flex justify-center pt-3 pb-2">
-              <div className="w-10 h-1 rounded-full bg-killer-200/20" />
+              <div className="w-12 h-1.5 rounded-full bg-slate-200" />
             </div>
 
-            <div className="flex items-center justify-between px-6 pb-4">
-              <h3 className="text-lg font-bold font-[family-name:var(--font-display)] text-foreground">
-                {mode === "login" ? "Se connecter" : "Créer un compte"}
+            <div className="flex items-center justify-between px-5 pb-4">
+              <h3 className="text-lg font-bold font-[family-name:var(--font-display)] text-slate-900">
+                {mode === "login" ? "Se connecter" : "Creer un compte"}
               </h3>
               <button
                 onClick={onClose}
-                className="p-2 rounded-full hover:bg-surface-2 transition-colors"
+                className="p-2 rounded-full hover:bg-slate-50 transition-colors"
               >
-                <X className="w-5 h-5 text-killer-200/60" />
+                <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-4">
+            <form onSubmit={handleSubmit} className="px-5 pb-6 space-y-4">
               {mode === "signup" && (
-                <p className="text-xs text-killer-200/50">
+                <p className="text-xs text-slate-400">
                   Utilise ton vrai nom pour que les autres joueurs te reconnaissent
                 </p>
               )}
               <Input
-                label="Prénom"
-                placeholder="Ton prénom"
+                label="Prenom"
+                placeholder="Ton prenom"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 autoComplete="given-name"
@@ -130,7 +130,7 @@ export default function AuthModal({
               <Input
                 label="Mot de passe"
                 type="password"
-                placeholder="••••••"
+                placeholder="******"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete={
@@ -139,7 +139,7 @@ export default function AuthModal({
               />
 
               {error && (
-                <p className="text-sm text-danger-400">{error}</p>
+                <p className="text-sm text-rose-500">{error}</p>
               )}
 
               <Button
@@ -155,17 +155,17 @@ export default function AuthModal({
                   )
                 }
               >
-                {mode === "login" ? "Se connecter" : "Créer mon compte"}
+                {mode === "login" ? "Se connecter" : "Creer mon compte"}
               </Button>
 
               <button
                 type="button"
                 onClick={toggleMode}
-                className="w-full text-center text-sm text-killer-400 hover:text-killer-300 transition-colors"
+                className="w-full text-center text-sm text-brand-600 hover:text-brand-700 transition-colors font-semibold"
               >
                 {mode === "login"
-                  ? "Pas encore de compte ? Créer un compte"
-                  : "Déjà un compte ? Se connecter"}
+                  ? "Pas encore de compte ? Creer un compte"
+                  : "Deja un compte ? Se connecter"}
               </button>
             </form>
           </motion.div>

@@ -9,7 +9,9 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import BottomSheet from "@/components/ui/BottomSheet";
 import { Copy, Share2, Users, Play, QrCode } from "lucide-react";
+import PlayerAvatar from "@/components/ui/PlayerAvatar";
 import { QRCodeSVG } from "qrcode.react";
+import ConnectedAs from "@/components/ui/ConnectedAs";
 
 interface GameLobbyProps {
   game: Game;
@@ -50,7 +52,6 @@ export default function GameLobby({ game, players: initialPlayers }: GameLobbyPr
         }
       });
 
-    // Fallback polling every 5s
     const fetchPlayers = async () => {
       const { data } = await supabase
         .from("players")
@@ -75,7 +76,7 @@ export default function GameLobby({ game, players: initialPlayers }: GameLobbyPr
 
   const handleShare = async () => {
     const url = `${window.location.origin}/join?code=${game.join_code}`;
-    const text = `🔪 Rejoins la partie "${game.name}" !\nCode: ${game.join_code}\n${url}`;
+    const text = `Rejoins la partie "${game.name}" !\nCode: ${game.join_code}\n${url}`;
 
     if (navigator.share) {
       try {
@@ -108,7 +109,7 @@ export default function GameLobby({ game, players: initialPlayers }: GameLobbyPr
         return;
       }
     } catch {
-      setAdminError("Erreur réseau");
+      setAdminError("Erreur reseau");
       setIsStarting(false);
     }
   };
@@ -118,33 +119,37 @@ export default function GameLobby({ game, players: initialPlayers }: GameLobbyPr
     : "";
 
   return (
-    <div className="min-h-dvh px-4 py-8 pb-safe max-w-lg mx-auto space-y-6">
+    <div className="min-h-dvh px-5 py-8 pb-safe max-w-lg mx-auto space-y-6">
+      <div className="flex justify-center">
+        <ConnectedAs />
+      </div>
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ ease: [0.22, 1, 0.36, 1], duration: 0.5 }}
         className="text-center space-y-2"
       >
-        <h1 className="text-2xl font-bold font-[family-name:var(--font-display)]">
+        <h1 className="text-2xl font-bold font-[family-name:var(--font-display)] text-slate-900">
           {game.name}
         </h1>
         <div className="flex items-center justify-center gap-2">
-          <span className="text-3xl font-bold font-[family-name:var(--font-mono)] text-killer-400 tracking-widest">
+          <span className="text-3xl font-bold font-[family-name:var(--font-mono)] text-brand-600 tracking-widest">
             {game.join_code}
           </span>
           <button
             onClick={handleCopy}
-            className="p-2 rounded-lg hover:bg-surface-2 transition-colors"
+            className="p-2 rounded-xl hover:bg-slate-50 transition-colors"
           >
-            <Copy className="w-4 h-4 text-killer-200/60" />
+            <Copy className="w-4 h-4 text-slate-400" />
           </button>
         </div>
         {copied && (
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-xs text-killer-400"
+            className="text-xs text-brand-600 font-semibold"
           >
-            Copié !
+            Copie !
           </motion.p>
         )}
       </motion.div>
@@ -172,8 +177,8 @@ export default function GameLobby({ game, players: initialPlayers }: GameLobbyPr
 
       <Card glow>
         <div className="flex items-center gap-3 mb-4">
-          <Users className="w-5 h-5 text-killer-400" />
-          <span className="font-bold font-[family-name:var(--font-display)]">
+          <Users className="w-5 h-5 text-brand-600" />
+          <span className="font-bold font-[family-name:var(--font-display)] text-slate-900">
             {players.length} joueur{players.length > 1 ? "s" : ""} inscrit{players.length > 1 ? "s" : ""}
           </span>
         </div>
@@ -186,10 +191,10 @@ export default function GameLobby({ game, players: initialPlayers }: GameLobbyPr
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.03 }}
-                className="flex items-center gap-2 p-2 rounded-lg bg-surface-2/50"
+                className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50"
               >
-                <span className="text-lg">{player.avatar_emoji}</span>
-                <span className="text-sm truncate">{player.name}</span>
+                <PlayerAvatar avatarId={player.avatar_emoji} size="sm" />
+                <span className="text-sm font-medium text-slate-700 truncate">{player.name}</span>
               </motion.div>
             ))}
           </AnimatePresence>
@@ -212,11 +217,11 @@ export default function GameLobby({ game, players: initialPlayers }: GameLobbyPr
         title="Lancer la partie"
       >
         <div className="space-y-4">
-          <p className="text-sm text-killer-200/60">
+          <p className="text-sm text-slate-500">
             {players.length} joueur{players.length > 1 ? "s" : ""} inscrit
             {players.length > 1 ? "s" : ""}
             {players.length < 4 && (
-              <span className="text-danger-400 ml-1">
+              <span className="text-rose-500 ml-1">
                 (minimum 4 joueurs)
               </span>
             )}
@@ -248,10 +253,10 @@ export default function GameLobby({ game, players: initialPlayers }: GameLobbyPr
         title="QR Code"
       >
         <div className="flex flex-col items-center gap-4">
-          <div className="bg-white p-4 rounded-2xl">
+          <div className="bg-white p-4 rounded-2xl border border-slate-100">
             <QRCodeSVG value={joinUrl} size={200} />
           </div>
-          <p className="text-sm text-killer-200/60 text-center">
+          <p className="text-sm text-slate-500 text-center">
             Scanne ce code pour rejoindre la partie
           </p>
         </div>

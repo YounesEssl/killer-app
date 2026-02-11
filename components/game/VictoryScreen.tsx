@@ -5,7 +5,8 @@ import type { Player, Game } from "@/lib/supabase/types";
 import { formatDuration } from "@/lib/utils";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
-import { Share2 } from "lucide-react";
+import { Share2, Trophy, Shield, Users, Skull, Clock } from "lucide-react";
+import PlayerAvatar from "@/components/ui/PlayerAvatar";
 
 interface VictoryScreenProps {
   game: Game;
@@ -29,7 +30,7 @@ export default function VictoryScreen({
       : null;
 
   const handleShare = async () => {
-    const text = `🔪 KILLER - GAME OVER!\n\n👑 ${winner?.name} remporte la partie "${game.name}" avec ${winner?.kill_count} kill(s)!\n🛡️ Dernier survivant : ${lastSurvivor?.name || "—"}\n\n📊 ${players.length} joueurs • ${totalKills} éliminations${gameDuration ? ` • ${gameDuration}` : ""}`;
+    const text = `KILLER - GAME OVER!\n\n${winner?.name} remporte la partie "${game.name}" avec ${winner?.kill_count} kill(s)!\nDernier survivant : ${lastSurvivor?.name || "—"}\n\n${players.length} joueurs - ${totalKills} eliminations${gameDuration ? ` - ${gameDuration}` : ""}`;
 
     if (navigator.share) {
       try {
@@ -41,28 +42,26 @@ export default function VictoryScreen({
   };
 
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-center px-6 relative">
-      <div className="absolute inset-0 bg-gradient-to-b from-killer-900/20 to-transparent pointer-events-none" />
-
+    <div className="min-h-dvh flex flex-col items-center justify-center px-6 relative bg-white">
       <motion.div
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", duration: 0.8 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20, duration: 0.8 }}
         className="text-center relative z-10 space-y-6 max-w-sm w-full"
       >
         <motion.div
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
-          transition={{ delay: 0.2, type: "spring", bounce: 0.5 }}
-          className="text-8xl"
+          transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 15 }}
+          className="w-20 h-20 rounded-full bg-brand-100 flex items-center justify-center mx-auto"
         >
-          👑
+          <Trophy className="w-10 h-10 text-brand-600" />
         </motion.div>
 
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
           className="text-4xl font-black text-gradient-green font-[family-name:var(--font-display)]"
         >
           GAME OVER
@@ -72,21 +71,23 @@ export default function VictoryScreen({
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="glass glow-green rounded-2xl p-6 space-y-3"
+            transition={{ delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="bg-white rounded-3xl border-2 border-brand-200 shadow-brand p-6 space-y-3"
           >
-            <span className="text-5xl">{winner.avatar_emoji}</span>
-            <h2 className="text-2xl font-bold text-foreground font-[family-name:var(--font-display)]">
+            <div className="mx-auto w-fit">
+              <PlayerAvatar avatarId={winner.avatar_emoji} size="lg" />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 font-[family-name:var(--font-display)]">
               {winner.name}
               {isWinner && (
-                <span className="block text-sm text-killer-400 mt-1">
+                <span className="block text-sm text-brand-600 mt-1">
                   C&apos;est toi !
                 </span>
               )}
             </h2>
-            <p className="text-killer-200/60">
+            <p className="text-slate-500">
               Meilleur killer avec{" "}
-              <span className="text-killer-400 font-bold">
+              <span className="text-brand-600 font-bold">
                 {winner.kill_count} kill{winner.kill_count > 1 ? "s" : ""}
               </span>
             </p>
@@ -97,18 +98,21 @@ export default function VictoryScreen({
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="glass rounded-xl p-4 flex items-center gap-3"
+            transition={{ delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3"
           >
-            <span className="text-2xl">{lastSurvivor.avatar_emoji}</span>
+            <PlayerAvatar avatarId={lastSurvivor.avatar_emoji} size="md" />
             <div className="text-left">
-              <p className="text-sm font-semibold text-foreground">
+              <p className="text-sm font-semibold text-slate-900">
                 {lastSurvivor.name}
                 {lastSurvivor.id === currentPlayerId && (
-                  <span className="text-xs text-killer-500 ml-1">(toi)</span>
+                  <span className="text-xs text-brand-600 ml-1">(toi)</span>
                 )}
               </p>
-              <p className="text-xs text-killer-200/50">🛡️ Dernier survivant</p>
+              <p className="text-xs text-slate-400 flex items-center gap-1">
+                <Shield className="w-3 h-3" />
+                Dernier survivant
+              </p>
             </div>
           </motion.div>
         )}
@@ -116,33 +120,36 @@ export default function VictoryScreen({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
+          transition={{ delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
           className="grid grid-cols-3 gap-3"
         >
-          <div className="glass rounded-xl p-3 text-center">
-            <p className="text-xl font-bold text-foreground font-[family-name:var(--font-display)]">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3 text-center">
+            <Users className="w-4 h-4 text-brand-500 mx-auto mb-1" />
+            <p className="text-xl font-bold text-slate-900 font-[family-name:var(--font-display)]">
               {players.length}
             </p>
-            <p className="text-xs text-killer-200/50">joueurs</p>
+            <p className="text-xs text-slate-400">joueurs</p>
           </div>
-          <div className="glass rounded-xl p-3 text-center">
-            <p className="text-xl font-bold text-foreground font-[family-name:var(--font-display)]">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3 text-center">
+            <Skull className="w-4 h-4 text-rose-500 mx-auto mb-1" />
+            <p className="text-xl font-bold text-slate-900 font-[family-name:var(--font-display)]">
               {totalKills}
             </p>
-            <p className="text-xs text-killer-200/50">kills</p>
+            <p className="text-xs text-slate-400">kills</p>
           </div>
-          <div className="glass rounded-xl p-3 text-center">
-            <p className="text-xl font-bold text-foreground font-[family-name:var(--font-display)]">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3 text-center">
+            <Clock className="w-4 h-4 text-brand-500 mx-auto mb-1" />
+            <p className="text-xl font-bold text-slate-900 font-[family-name:var(--font-display)]">
               {gameDuration || "—"}
             </p>
-            <p className="text-xs text-killer-200/50">durée</p>
+            <p className="text-xs text-slate-400">duree</p>
           </div>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
+          transition={{ delay: 1, ease: [0.22, 1, 0.36, 1] }}
           className="flex flex-col gap-3 pt-4"
         >
           <Link href={`/game/${game.id}/leaderboard`}>

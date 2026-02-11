@@ -47,7 +47,7 @@ export default function AdminPage({ params }: { params: Promise<{ id: string }> 
 
       setAuthenticated(true);
     } catch {
-      setError("Erreur réseau");
+      setError("Erreur reseau");
     }
 
     setIsChecking(false);
@@ -55,18 +55,21 @@ export default function AdminPage({ params }: { params: Promise<{ id: string }> 
 
   if (!authenticated) {
     return (
-      <div className="min-h-dvh flex items-center justify-center px-6">
+      <div className="min-h-dvh flex items-center justify-center px-6 bg-white">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ ease: [0.22, 1, 0.36, 1], duration: 0.5 }}
           className="w-full max-w-sm space-y-6"
         >
           <div className="text-center space-y-2">
-            <Lock className="w-10 h-10 text-killer-400 mx-auto" />
-            <h1 className="text-2xl font-bold font-[family-name:var(--font-display)]">
+            <div className="w-16 h-16 rounded-full bg-brand-100 flex items-center justify-center mx-auto">
+              <Lock className="w-8 h-8 text-brand-600" />
+            </div>
+            <h1 className="text-2xl font-bold font-[family-name:var(--font-display)] text-slate-900">
               Admin Panel
             </h1>
-            <p className="text-killer-200/60 text-sm">
+            <p className="text-slate-500 text-sm">
               Entre le mot de passe admin
             </p>
           </div>
@@ -88,7 +91,7 @@ export default function AdminPage({ params }: { params: Promise<{ id: string }> 
             disabled={!password}
             onClick={handleAuth}
           >
-            Accéder
+            Acceder
           </Button>
         </motion.div>
       </div>
@@ -98,7 +101,7 @@ export default function AdminPage({ params }: { params: Promise<{ id: string }> 
   if (!game) return null;
 
   return (
-    <div className="min-h-dvh px-4 py-6 max-w-2xl mx-auto">
+    <div className="min-h-dvh px-5 py-6 max-w-2xl mx-auto bg-white">
       <AdminPanel game={game} players={players} events={events} />
     </div>
   );
