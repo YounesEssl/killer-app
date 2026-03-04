@@ -35,29 +35,32 @@ function FeedPageContent({ params }: { params: Promise<{ id: string }> }) {
   const alivePlayers = players.filter((p) => p.is_alive);
 
   return (
-    <div className="min-h-dvh px-5 py-6 pb-24 max-w-lg mx-auto bg-white">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ ease: [0.22, 1, 0.36, 1] }}
-        className="space-y-6"
-      >
-        <div className="space-y-2">
-          <ConnectedAs />
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold font-[family-name:var(--font-display)] text-slate-900">
-              Feed
-            </h1>
-            {game?.status === "active" && (
-              <Badge variant="green">
-                {alivePlayers.length}/{players.length} survivants
-              </Badge>
-            )}
+    <div className="min-h-dvh px-5 py-6 pb-24 max-w-lg mx-auto bg-[#0a0f0d] relative">
+      <div className="fixed inset-0 bg-grid pointer-events-none" />
+      <div className="relative z-10">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-6"
+        >
+          <div className="space-y-2">
+            <ConnectedAs />
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl font-bold font-[family-name:var(--font-display)] text-white">
+                Feed
+              </h1>
+              {game?.status === "active" && (
+                <Badge variant="green">
+                  {alivePlayers.length}/{players.length} survivants
+                </Badge>
+              )}
+            </div>
           </div>
-        </div>
 
-        <KillFeed gameId={gameId} totalPlayers={players.length} />
-      </motion.div>
+          <KillFeed gameId={gameId} totalPlayers={players.length} />
+        </motion.div>
+      </div>
 
       <BottomNav gameId={gameId} />
     </div>

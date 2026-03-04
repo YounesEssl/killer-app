@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
-import { createSSRClient } from "@/lib/supabase/ssr-server";
 import { generateKillCode } from "@/lib/utils";
 
 export async function POST(request: Request) {
   try {
-    const { joinCode, avatarEmoji } = await request.json();
+    const { joinCode, accountId } = await request.json();
 
     if (!joinCode) {
       return NextResponse.json(
@@ -14,30 +13,37 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get authenticated user
-    const ssrClient = await createSSRClient();
-    const {
-      data: { user },
-    } = await ssrClient.auth.getUser();
-
-    if (!user) {
+    if (!accountId) {
       return NextResponse.json(
-        { error: "Tu dois être connecté pour rejoindre une partie" },
+        { error: "Tu dois etre connecte pour rejoindre une partie" },
         { status: 401 }
       );
     }
 
-    const firstName = user.user_metadata?.first_name as string | undefined;
-    const lastName = user.user_metadata?.last_name as string | undefined;
-    if (!firstName || !lastName) {
+    const supabase = createServerClient();
+
+    // Get account
+    const { data: account, error: accountError } = await supabase
+      .from("accounts")
+      .select("*")
+      .eq("id", accountId)
+      .single();
+
+    if (accountError || !account) {
       return NextResponse.json(
-        { error: "Ton compte n'a pas de nom configuré" },
+        { error: "Compte introuvable" },
+        { status: 401 }
+      );
+    }
+
+    if (!account.photo_url) {
+      return NextResponse.json(
+        { error: "Tu dois ajouter une photo de profil avant de jouer" },
         { status: 400 }
       );
     }
-    const playerName = `${firstName} ${lastName}`;
 
-    const supabase = createServerClient();
+    const playerName = account.username;
 
     const { data: game, error: gameError } = await supabase
       .from("games")
@@ -47,29 +53,29 @@ export async function POST(request: Request) {
 
     if (gameError || !game) {
       return NextResponse.json(
-        { error: "Partie introuvable. Vérifie le code." },
+        { error: "Partie introuvable. Verifie le code." },
         { status: 404 }
       );
     }
 
     if (game.status !== "lobby") {
       return NextResponse.json(
-        { error: "Cette partie a déjà commencé" },
+        { error: "Cette partie a deja commence" },
         { status: 400 }
       );
     }
 
-    // Check name uniqueness
+    // Check account uniqueness in this game
     const { data: existingPlayer } = await supabase
       .from("players")
       .select("id")
       .eq("game_id", game.id)
-      .eq("name", playerName.trim())
+      .eq("account_id", accountId)
       .single();
 
     if (existingPlayer) {
       return NextResponse.json(
-        { error: "Ce prénom est déjà pris dans cette partie" },
+        { error: "Tu es deja dans cette partie" },
         { status: 400 }
       );
     }
@@ -87,14 +93,13 @@ export async function POST(request: Request) {
       .from("players")
       .insert({
         game_id: game.id,
-        name: playerName.trim(),
-        avatar_emoji: avatarEmoji || "🎭",
+        account_id: accountId,
+        name: playerName,
         kill_code: killCode,
         target_id: null,
         mission_id: null,
         is_alive: true,
         kill_count: 0,
-        user_id: user.id,
       })
       .select()
       .single();

@@ -7,7 +7,21 @@ import type { Player } from "@/lib/supabase/types";
 export function usePlayer(playerId: string | null) {
   const [player, setPlayer] = useState<Player | null>(null);
   const [target, setTarget] = useState<Player | null>(null);
+  const [targetPhotoUrl, setTargetPhotoUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const fetchPhotoUrl = useCallback(async (accountId: string | null) => {
+    if (!accountId) {
+      setTargetPhotoUrl(null);
+      return;
+    }
+    const { data } = await supabase
+      .from("accounts")
+      .select("photo_url")
+      .eq("id", accountId)
+      .single();
+    setTargetPhotoUrl(data?.photo_url ?? null);
+  }, []);
 
   const fetchPlayer = useCallback(async () => {
     if (!playerId) {
@@ -33,11 +47,12 @@ export function usePlayer(playerId: string | null) {
 
         if (targetData) {
           setTarget(targetData);
+          await fetchPhotoUrl(targetData.account_id);
         }
       }
     }
     setIsLoading(false);
-  }, [playerId]);
+  }, [playerId, fetchPhotoUrl]);
 
   useEffect(() => {
     fetchPlayer();
@@ -65,7 +80,10 @@ export function usePlayer(playerId: string | null) {
               .eq("id", updated.target_id)
               .single()
               .then(({ data }) => {
-                if (data) setTarget(data);
+                if (data) {
+                  setTarget(data);
+                  fetchPhotoUrl(data.account_id);
+                }
               });
           }
         }
@@ -85,5 +103,5 @@ export function usePlayer(playerId: string | null) {
     };
   }, [playerId, fetchPlayer]);
 
-  return { player, target, isLoading, refetch: fetchPlayer };
+  return { player, target, targetPhotoUrl, isLoading, refetch: fetchPlayer };
 }

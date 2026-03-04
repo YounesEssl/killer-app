@@ -28,7 +28,7 @@ export default function BottomNav({ gameId }: BottomNavProps) {
   ];
 
   return (
-    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xs z-50 bg-white/90 backdrop-blur-xl border border-slate-200 shadow-2xl rounded-3xl p-2 flex justify-around items-center">
+    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xs z-50 bg-[#111916]/90 backdrop-blur-xl border border-green-500/15 shadow-2xl rounded-3xl p-2 flex justify-around items-center">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         return (
@@ -38,8 +38,8 @@ export default function BottomNav({ gameId }: BottomNavProps) {
             className={cn(
               "flex items-center gap-2 px-5 py-3 rounded-2xl transition-all font-[family-name:var(--font-display)] font-bold text-sm",
               tab.active
-                ? "bg-brand-500 text-white shadow-brand"
-                : "text-slate-400 hover:bg-slate-50"
+                ? "bg-green-500 text-white shadow-[0_0_20px_rgba(74,222,128,0.3)]"
+                : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
             )}
           >
             <Icon className="w-5 h-5" />

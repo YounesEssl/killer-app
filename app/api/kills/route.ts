@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     if (!rateCheck.allowed) {
       return NextResponse.json(
         {
-          error: `Trop de tentatives. Réessaie dans ${rateCheck.retryAfter}s`,
+          error: `Trop de tentatives. Reessaie dans ${rateCheck.retryAfter}s`,
         },
         { status: 429 }
       );
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
 
     if (!killer.is_alive) {
       return NextResponse.json(
-        { error: "Tu es mort, tu ne peux plus éliminer personne" },
+        { error: "Tu es mort, tu ne peux plus eliminer personne" },
         { status: 400 }
       );
     }
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
 
     if (!target.is_alive) {
       return NextResponse.json(
-        { error: "Ta cible est déjà éliminée" },
+        { error: "Ta cible est deja eliminee" },
         { status: 400 }
       );
     }
@@ -184,15 +184,31 @@ export async function POST(request: Request) {
         .eq("id", killer.game_id);
     }
 
-    // Get new target info
+    // Get new target info with photo
     let newTarget = null;
     if (target.target_id && !isGameOver) {
-      const { data } = await supabase
+      const { data: newTargetPlayer } = await supabase
         .from("players")
-        .select("id, name, avatar_emoji")
+        .select("id, name, account_id")
         .eq("id", target.target_id)
         .single();
-      newTarget = data;
+
+      if (newTargetPlayer) {
+        let photoUrl: string | null = null;
+        if (newTargetPlayer.account_id) {
+          const { data: acc } = await supabase
+            .from("accounts")
+            .select("photo_url")
+            .eq("id", newTargetPlayer.account_id)
+            .single();
+          photoUrl = acc?.photo_url ?? null;
+        }
+        newTarget = {
+          id: newTargetPlayer.id,
+          name: newTargetPlayer.name,
+          photo_url: photoUrl,
+        };
+      }
     }
 
     const newMission = target.mission_id

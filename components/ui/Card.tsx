@@ -31,10 +31,10 @@ export default function Card({
       transition={{ ease: [0.22, 1, 0.36, 1], duration: 0.4 }}
       whileHover={hover ? { y: -2 } : undefined}
       className={cn(
-        "bg-white rounded-3xl border border-slate-100 shadow-sm",
+        "bg-[#111916] rounded-3xl border border-green-500/10 shadow-lg",
         paddingStyles[padding],
-        glow && "border-brand-200 shadow-brand",
-        hover && "hover:shadow-md transition-all",
+        glow && "border-green-500/30 shadow-[0_0_30px_rgba(74,222,128,0.1)]",
+        hover && "hover:shadow-xl transition-all",
         className
       )}
     >

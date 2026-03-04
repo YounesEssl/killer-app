@@ -82,32 +82,34 @@ function CreatePageContent() {
 
   if (createdGame) {
     return (
-      <div className="min-h-dvh px-6 py-8 flex flex-col items-center justify-center max-w-sm mx-auto bg-white">
+      <div className="min-h-dvh px-6 py-8 flex flex-col items-center justify-center max-w-sm mx-auto bg-[#0a0f0d] relative">
+        <div className="fixed inset-0 bg-grid pointer-events-none" />
+        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-radial-glow pointer-events-none" />
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ ease: [0.22, 1, 0.36, 1], duration: 0.5 }}
-          className="w-full space-y-6 text-center"
+          className="w-full space-y-6 text-center relative z-10"
         >
           <div className="space-y-2">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 15 }}
-              className="w-16 h-16 rounded-full bg-brand-100 flex items-center justify-center mx-auto"
+              className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto"
             >
-              <Zap className="w-8 h-8 text-brand-600" />
+              <Zap className="w-8 h-8 text-green-400" />
             </motion.div>
-            <h1 className="text-2xl font-bold font-[family-name:var(--font-display)] text-slate-900">
+            <h1 className="text-2xl font-bold font-[family-name:var(--font-display)] text-white">
               Partie creee !
             </h1>
-            <p className="text-slate-500 text-sm">
+            <p className="text-gray-500 text-sm">
               Partage ce code avec les joueurs
             </p>
           </div>
 
           <Card glow className="py-8">
-            <p className="text-5xl font-black font-[family-name:var(--font-mono)] text-brand-600 tracking-[0.3em]">
+            <p className="text-5xl font-black font-[family-name:var(--font-mono)] text-green-400 tracking-[0.3em] text-glow-green">
               {createdGame.join_code}
             </p>
           </Card>
@@ -132,10 +134,10 @@ function CreatePageContent() {
           </div>
 
           <div className="flex flex-col items-center gap-3">
-            <div className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
-              <QRCodeSVG value={joinUrl} size={160} />
+            <div className="bg-white p-3 rounded-2xl shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+              <QRCodeSVG value={joinUrl} size={160} fgColor="#0a0f0d" level="H" />
             </div>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-gray-500">
               Scanne pour rejoindre
             </p>
           </div>
@@ -151,61 +153,64 @@ function CreatePageContent() {
   }
 
   return (
-    <div className="min-h-dvh px-6 py-8 flex flex-col max-w-sm mx-auto bg-white">
-      <div className="flex items-center justify-between mb-8">
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-slate-400 hover:text-slate-600 transition-colors"
+    <div className="min-h-dvh px-6 py-8 flex flex-col max-w-sm mx-auto bg-[#0a0f0d] relative">
+      <div className="fixed inset-0 bg-grid pointer-events-none" />
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-8">
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-gray-500 hover:text-gray-300 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="text-sm">Retour</span>
+          </Link>
+          <ConnectedAs />
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ease: [0.22, 1, 0.36, 1], duration: 0.5 }}
+          className="space-y-6"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="text-sm">Retour</span>
-        </Link>
-        <ConnectedAs />
+          <div>
+            <h1 className="text-3xl font-bold font-[family-name:var(--font-display)] text-white">
+              Creer une partie
+            </h1>
+            <p className="text-gray-500 mt-1">
+              Configure ta partie de Killer
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <Input
+              label="Nom de la partie"
+              placeholder="Week-end anniversaire"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <Input
+              label="Mot de passe admin"
+              type="password"
+              placeholder="Pour acceder au panel admin"
+              value={adminPassword}
+              onChange={(e) => setAdminPassword(e.target.value)}
+            />
+            {error && <p className="text-sm text-red-400">{error}</p>}
+          </div>
+
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            loading={isCreating}
+            disabled={!name.trim() || !adminPassword.trim()}
+            onClick={handleCreate}
+          >
+            Creer la partie
+          </Button>
+        </motion.div>
       </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ ease: [0.22, 1, 0.36, 1], duration: 0.5 }}
-        className="space-y-6"
-      >
-        <div>
-          <h1 className="text-3xl font-bold font-[family-name:var(--font-display)] text-slate-900">
-            Creer une partie
-          </h1>
-          <p className="text-slate-500 mt-1">
-            Configure ta partie de Killer
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          <Input
-            label="Nom de la partie"
-            placeholder="Week-end anniversaire"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <Input
-            label="Mot de passe admin"
-            type="password"
-            placeholder="Pour acceder au panel admin"
-            value={adminPassword}
-            onChange={(e) => setAdminPassword(e.target.value)}
-          />
-          {error && <p className="text-sm text-rose-500">{error}</p>}
-        </div>
-
-        <Button
-          variant="primary"
-          size="lg"
-          fullWidth
-          loading={isCreating}
-          disabled={!name.trim() || !adminPassword.trim()}
-          onClick={handleCreate}
-        >
-          Creer la partie
-        </Button>
-      </motion.div>
     </div>
   );
 }

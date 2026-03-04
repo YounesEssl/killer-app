@@ -2,27 +2,30 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+import { useAccount } from "@/hooks/useAccount";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { account, isLoading, needsPhoto } = useAccount();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!isLoading && !account) {
       router.replace("/");
     }
-  }, [user, loading, router]);
+    if (!isLoading && account && needsPhoto) {
+      router.replace("/profile/photo");
+    }
+  }, [account, isLoading, needsPhoto, router]);
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-white">
-        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-dvh flex items-center justify-center bg-[#0a0f0d]">
+        <div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
-  if (!user) return null;
+  if (!account || needsPhoto) return null;
 
   return <>{children}</>;
 }

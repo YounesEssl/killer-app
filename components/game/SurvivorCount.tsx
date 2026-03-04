@@ -18,9 +18,9 @@ export default function SurvivorCount({ alive, total }: SurvivorCountProps) {
       className="flex items-center gap-3"
     >
       <Badge variant="live">EN JEU</Badge>
-      <span className="text-sm text-slate-700 font-[family-name:var(--font-display)]">
-        <Counter value={alive} className="text-brand-600 font-bold" />
-        <span className="text-slate-400">/{total}</span>
+      <span className="text-sm text-gray-300 font-[family-name:var(--font-display)]">
+        <Counter value={alive} className="text-green-400 font-bold" />
+        <span className="text-gray-500">/{total}</span>
         <span className="ml-1">survivants</span>
       </span>
     </motion.div>

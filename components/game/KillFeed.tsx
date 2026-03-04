@@ -20,7 +20,7 @@ export default function KillFeed({ gameId, totalPlayers }: KillFeedProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -28,10 +28,10 @@ export default function KillFeed({ gameId, totalPlayers }: KillFeedProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold font-[family-name:var(--font-display)] text-slate-900">
+        <h2 className="text-lg font-bold font-[family-name:var(--font-display)] text-white">
           Eliminations
         </h2>
-        <span className="text-sm text-slate-500">
+        <span className="text-sm text-gray-500">
           {currentSurvivors} sur {totalPlayers}
         </span>
       </div>
@@ -42,11 +42,11 @@ export default function KillFeed({ gameId, totalPlayers }: KillFeedProps) {
           animate={{ opacity: 1 }}
           className="text-center py-12"
         >
-          <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-3">
-            <Skull className="w-8 h-8 text-slate-300" />
+          <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3">
+            <Skull className="w-8 h-8 text-gray-600" />
           </div>
-          <p className="text-slate-400">Aucune elimination pour le moment</p>
-          <p className="text-slate-300 text-sm mt-1">
+          <p className="text-gray-500">Aucune elimination pour le moment</p>
+          <p className="text-gray-600 text-sm mt-1">
             La tension monte...
           </p>
         </motion.div>

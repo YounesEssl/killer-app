@@ -105,15 +105,15 @@ export default function CodeInput({
           autoFocus={index === 0}
           className={cn(
             "w-14 h-16 text-center text-2xl font-bold rounded-2xl",
-            "bg-slate-50 border-2 transition-all",
+            "bg-white/5 border-2 transition-all backdrop-blur-sm",
             "font-[family-name:var(--font-mono)]",
             "focus:outline-none",
             "disabled:opacity-50",
             error
-              ? "border-rose-300 text-rose-600"
+              ? "border-red-500/40 text-red-400"
               : values[index]
-              ? "border-brand-500 text-brand-700 shadow-brand"
-              : "border-slate-100 text-slate-900 focus:border-brand-500 focus:bg-white"
+              ? "border-green-500/50 text-green-400 shadow-[0_0_15px_rgba(74,222,128,0.15)]"
+              : "border-white/10 text-white focus:border-green-500/50 focus:bg-white/10"
           )}
         />
       ))}

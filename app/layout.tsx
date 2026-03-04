@@ -25,7 +25,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#ffffff",
+  themeColor: "#0a0f0d",
   viewportFit: "cover",
 };
 
@@ -48,7 +48,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body
-        className={`${sora.variable} ${inter.variable} ${jetbrainsMono.variable} antialiased bg-white min-h-dvh`}
+        className={`${sora.variable} ${inter.variable} ${jetbrainsMono.variable} antialiased bg-[#0a0f0d] min-h-dvh`}
       >
         {children}
       </body>

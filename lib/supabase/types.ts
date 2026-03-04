@@ -1,5 +1,15 @@
 export type GameStatus = "lobby" | "active" | "finished";
 
+export type Account = {
+  id: string;
+  username: string;
+  username_normalized: string;
+  secret_code: string;
+  photo_url: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Game = {
   id: string;
   name: string;
@@ -15,8 +25,8 @@ export type Game = {
 export type Player = {
   id: string;
   game_id: string;
+  account_id: string | null;
   name: string;
-  avatar_emoji: string;
   kill_code: string;
   target_id: string | null;
   mission_id: number | null;
@@ -24,7 +34,6 @@ export type Player = {
   kill_count: number;
   joined_at: string;
   died_at: string | null;
-  user_id: string | null;
 };
 
 export type KillEvent = {
@@ -44,6 +53,12 @@ export type PlayerWithTarget = Player & {
 export type Database = {
   public: {
     Tables: {
+      accounts: {
+        Row: Account;
+        Insert: Partial<Account> & Pick<Account, "username" | "username_normalized" | "secret_code">;
+        Update: Partial<Account>;
+        Relationships: [];
+      };
       games: {
         Row: Game;
         Insert: Partial<Game> & Pick<Game, "name" | "join_code" | "admin_password">;

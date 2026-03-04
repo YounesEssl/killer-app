@@ -8,8 +8,8 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import BottomSheet from "@/components/ui/BottomSheet";
-import { Copy, Share2, Users, Play, QrCode } from "lucide-react";
-import PlayerAvatar from "@/components/ui/PlayerAvatar";
+import { Copy, Share2, Users, Play, QrCode, Check } from "lucide-react";
+import ProfilePhoto from "@/components/ui/ProfilePhoto";
 import { QRCodeSVG } from "qrcode.react";
 import ConnectedAs from "@/components/ui/ConnectedAs";
 
@@ -18,8 +18,10 @@ interface GameLobbyProps {
   players: Player[];
 }
 
+type PlayerWithPhoto = Player & { photo_url?: string | null };
+
 export default function GameLobby({ game, players: initialPlayers }: GameLobbyProps) {
-  const [players, setPlayers] = useState(initialPlayers);
+  const [players, setPlayers] = useState<PlayerWithPhoto[]>(initialPlayers);
   const [showAdmin, setShowAdmin] = useState(false);
   const [adminPassword, setAdminPassword] = useState("");
   const [adminError, setAdminError] = useState("");
@@ -27,7 +29,40 @@ export default function GameLobby({ game, players: initialPlayers }: GameLobbyPr
   const [showQR, setShowQR] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // Fetch players with their photos
+  const fetchPlayersWithPhotos = async () => {
+    const { data } = await supabase
+      .from("players")
+      .select("*")
+      .eq("game_id", game.id)
+      .order("joined_at", { ascending: true });
+
+    if (!data) return;
+
+    // Fetch photos for all players with account_id
+    const accountIds = data.filter((p) => p.account_id).map((p) => p.account_id!);
+    let photoMap: Record<string, string | null> = {};
+
+    if (accountIds.length > 0) {
+      const { data: accounts } = await supabase
+        .from("accounts")
+        .select("id, photo_url")
+        .in("id", accountIds);
+
+      if (accounts) {
+        photoMap = Object.fromEntries(accounts.map((a) => [a.id, a.photo_url]));
+      }
+    }
+
+    setPlayers(data.map((p) => ({
+      ...p,
+      photo_url: p.account_id ? photoMap[p.account_id] ?? null : null,
+    })));
+  };
+
   useEffect(() => {
+    fetchPlayersWithPhotos();
+
     const channel = supabase
       .channel(`lobby-${game.id}`)
       .on(
@@ -38,29 +73,11 @@ export default function GameLobby({ game, players: initialPlayers }: GameLobbyPr
           table: "players",
           filter: `game_id=eq.${game.id}`,
         },
-        (payload) => {
-          setPlayers((prev) => {
-            const newPlayer = payload.new as Player;
-            if (prev.some((p) => p.id === newPlayer.id)) return prev;
-            return [...prev, newPlayer];
-          });
-        }
+        () => { fetchPlayersWithPhotos(); }
       )
-      .subscribe((status) => {
-        if (status === "CHANNEL_ERROR") {
-          console.error("[GameLobby] Realtime subscription error, falling back to polling");
-        }
-      });
+      .subscribe();
 
-    const fetchPlayers = async () => {
-      const { data } = await supabase
-        .from("players")
-        .select("*")
-        .eq("game_id", game.id)
-        .order("joined_at", { ascending: true });
-      if (data) setPlayers(data);
-    };
-    const interval = setInterval(fetchPlayers, 5000);
+    const interval = setInterval(fetchPlayersWithPhotos, 5000);
 
     return () => {
       clearInterval(interval);
@@ -119,148 +136,187 @@ export default function GameLobby({ game, players: initialPlayers }: GameLobbyPr
     : "";
 
   return (
-    <div className="min-h-dvh px-5 py-8 pb-safe max-w-lg mx-auto space-y-6">
-      <div className="flex justify-center">
-        <ConnectedAs />
-      </div>
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ ease: [0.22, 1, 0.36, 1], duration: 0.5 }}
-        className="text-center space-y-2"
-      >
-        <h1 className="text-2xl font-bold font-[family-name:var(--font-display)] text-slate-900">
-          {game.name}
-        </h1>
-        <div className="flex items-center justify-center gap-2">
-          <span className="text-3xl font-bold font-[family-name:var(--font-mono)] text-brand-600 tracking-widest">
-            {game.join_code}
-          </span>
-          <button
-            onClick={handleCopy}
-            className="p-2 rounded-xl hover:bg-slate-50 transition-colors"
-          >
-            <Copy className="w-4 h-4 text-slate-400" />
-          </button>
-        </div>
-        {copied && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-xs text-brand-600 font-semibold"
-          >
-            Copie !
-          </motion.p>
-        )}
-      </motion.div>
+    <div className="min-h-dvh pb-safe bg-[#0a0f0d] relative overflow-hidden">
+      {/* Background */}
+      <div className="fixed inset-0 bg-grid pointer-events-none opacity-50" />
+      <div className="fixed inset-0 bg-gradient-to-b from-transparent via-[#0a0f0d]/50 to-[#0a0f0d] pointer-events-none" />
 
-      <div className="flex gap-3">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={handleShare}
-          icon={<Share2 className="w-4 h-4" />}
-          fullWidth
+      <div className="relative z-10 px-5 py-8 max-w-lg mx-auto space-y-6">
+        <div className="flex justify-center">
+          <ConnectedAs />
+        </div>
+
+        {/* Hero */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ease: [0.22, 1, 0.36, 1], duration: 0.5 }}
+          className="text-center space-y-2"
         >
-          Partager
-        </Button>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => setShowQR(true)}
-          icon={<QrCode className="w-4 h-4" />}
-          fullWidth
-        >
-          QR Code
-        </Button>
-      </div>
-
-      <Card glow>
-        <div className="flex items-center gap-3 mb-4">
-          <Users className="w-5 h-5 text-brand-600" />
-          <span className="font-bold font-[family-name:var(--font-display)] text-slate-900">
-            {players.length} joueur{players.length > 1 ? "s" : ""} inscrit{players.length > 1 ? "s" : ""}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          <AnimatePresence>
-            {players.map((player, index) => (
-              <motion.div
-                key={player.id}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.03 }}
-                className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50"
-              >
-                <PlayerAvatar avatarId={player.avatar_emoji} size="sm" />
-                <span className="text-sm font-medium text-slate-700 truncate">{player.name}</span>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-      </Card>
-
-      <Button
-        variant="primary"
-        size="lg"
-        fullWidth
-        onClick={() => setShowAdmin(true)}
-        icon={<Play className="w-5 h-5" />}
-      >
-        Lancer la partie
-      </Button>
-
-      <BottomSheet
-        isOpen={showAdmin}
-        onClose={() => { setShowAdmin(false); setAdminError(""); }}
-        title="Lancer la partie"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-slate-500">
-            {players.length} joueur{players.length > 1 ? "s" : ""} inscrit
-            {players.length > 1 ? "s" : ""}
-            {players.length < 4 && (
-              <span className="text-rose-500 ml-1">
-                (minimum 4 joueurs)
-              </span>
-            )}
+          <p className="text-green-400 text-xs font-black tracking-[0.3em] uppercase font-[family-name:var(--font-display)]">
+            Salle d&apos;attente
           </p>
-          <Input
-            label="Mot de passe admin"
-            type="password"
-            placeholder="Ton mot de passe admin"
-            value={adminPassword}
-            onChange={(e) => setAdminPassword(e.target.value)}
-            error={adminError}
-          />
-          <Button
-            variant="primary"
-            size="lg"
-            fullWidth
-            loading={isStarting}
-            disabled={players.length < 4 || !adminPassword}
-            onClick={handleStart}
+          <h1 className="text-3xl font-bold font-[family-name:var(--font-display)] text-white text-glow-green">
+            {game.name}
+          </h1>
+
+          {/* Join code */}
+          <motion.div
+            whileTap={{ scale: 0.98 }}
+            onClick={handleCopy}
+            className="relative group cursor-pointer mt-4"
           >
-            Confirmer le lancement
+            <div className="bg-[#111916] border border-green-500/20 rounded-3xl py-6 px-4 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-3">
+                {copied ? (
+                  <div className="flex items-center gap-1 text-green-400 text-xs font-bold bg-green-500/10 px-2 py-1 rounded-lg">
+                    <Check size={12} /> Copie !
+                  </div>
+                ) : (
+                  <Copy size={16} className="text-white/20" />
+                )}
+              </div>
+              <p className="text-xs text-white/40 font-medium tracking-widest uppercase mb-1">Code d&apos;acces</p>
+              <div className="text-5xl font-black tracking-[0.2em] text-white font-[family-name:var(--font-mono)] flex justify-center">
+                {game.join_code.split("").map((char, i) => (
+                  <span key={i} className="inline-block hover:text-green-400 transition-colors">
+                    {char}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* Action row */}
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleShare}
+            icon={<Share2 className="w-4 h-4" />}
+            fullWidth
+          >
+            Partager
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setShowQR(true)}
+            icon={<QrCode className="w-4 h-4" />}
+            fullWidth
+          >
+            QR Code
           </Button>
         </div>
-      </BottomSheet>
 
-      <BottomSheet
-        isOpen={showQR}
-        onClose={() => setShowQR(false)}
-        title="QR Code"
-      >
-        <div className="flex flex-col items-center gap-4">
-          <div className="bg-white p-4 rounded-2xl border border-slate-100">
-            <QRCodeSVG value={joinUrl} size={200} />
+        {/* Player list */}
+        <div className="bg-[#111916] rounded-[2rem] border border-green-500/10 shadow-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-white/5 bg-white/[0.02] flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-500/10 rounded-lg">
+                <Users className="w-4 h-4 text-green-400" />
+              </div>
+              <span className="font-bold font-[family-name:var(--font-display)] text-white">
+                {players.length} joueur{players.length > 1 ? "s" : ""} inscrit{players.length > 1 ? "s" : ""}
+              </span>
+            </div>
+            <div className="text-[10px] font-bold text-white/30 bg-white/5 px-2 py-1 rounded-md uppercase tracking-wider">
+              Min. 4
+            </div>
           </div>
-          <p className="text-sm text-slate-500 text-center">
-            Scanne ce code pour rejoindre la partie
-          </p>
+
+          <div className="p-4 grid grid-cols-2 gap-2 max-h-[400px] overflow-y-auto">
+            <AnimatePresence>
+              {players.map((player, index) => (
+                <motion.div
+                  key={player.id}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.03 }}
+                  className="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-white/5 hover:border-green-500/20 transition-colors"
+                >
+                  <ProfilePhoto src={player.photo_url ?? null} alt={player.name} size="sm" />
+                  <span className="text-sm font-medium text-white/80 truncate">{player.name}</span>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            {players.length === 0 && (
+              <div className="col-span-2 py-8 text-center text-white/20 italic text-sm">
+                En attente de joueurs...
+              </div>
+            )}
+          </div>
         </div>
-      </BottomSheet>
+
+        {/* Launch button */}
+        <Button
+          variant="primary"
+          size="lg"
+          fullWidth
+          onClick={() => setShowAdmin(true)}
+          icon={<Play className="w-5 h-5" />}
+          disabled={players.length < 4}
+        >
+          Lancer la partie
+        </Button>
+
+        {/* Admin bottom sheet */}
+        <BottomSheet
+          isOpen={showAdmin}
+          onClose={() => { setShowAdmin(false); setAdminError(""); }}
+          title="Lancer la partie"
+        >
+          <div className="space-y-4">
+            <div className="p-4 bg-green-500/5 border border-green-500/20 rounded-2xl text-sm text-green-400 leading-relaxed">
+              {players.length} joueur{players.length > 1 ? "s" : ""} inscrit
+              {players.length > 1 ? "s" : ""}
+              {players.length < 4 && (
+                <span className="text-red-400 ml-1">
+                  (minimum 4 joueurs)
+                </span>
+              )}
+            </div>
+            <Input
+              label="Mot de passe admin"
+              type="password"
+              placeholder="Ton mot de passe admin"
+              value={adminPassword}
+              onChange={(e) => setAdminPassword(e.target.value)}
+              error={adminError}
+            />
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={isStarting}
+              disabled={players.length < 4 || !adminPassword}
+              onClick={handleStart}
+            >
+              Confirmer le lancement
+            </Button>
+          </div>
+        </BottomSheet>
+
+        {/* QR bottom sheet */}
+        <BottomSheet
+          isOpen={showQR}
+          onClose={() => setShowQR(false)}
+          title="QR Code"
+        >
+          <div className="flex flex-col items-center gap-6 pb-4">
+            <div className="bg-white p-5 rounded-2xl shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+              <QRCodeSVG value={joinUrl} size={200} fgColor="#0a0f0d" level="H" />
+            </div>
+            <div className="text-center space-y-1">
+              <p className="text-white font-bold">Scannez pour rejoindre</p>
+              <p className="text-sm text-gray-500">
+                Scanne ce code pour rejoindre la partie
+              </p>
+            </div>
+          </div>
+        </BottomSheet>
+      </div>
     </div>
   );
 }

@@ -1,37 +1,37 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #ffffff;
-  --color-foreground: #0f172a;
+  --color-background: #0a0f0d;
+  --color-foreground: #f1f5f9;
 
-  --color-brand-950: #022c22;
-  --color-brand-900: #064e3b;
-  --color-brand-800: #065f46;
-  --color-brand-700: #047857;
-  --color-brand-600: #059669;
-  --color-brand-500: #10b981;
+  --color-brand-950: #052e16;
+  --color-brand-900: #14532d;
+  --color-brand-800: #166534;
+  --color-brand-700: #15803d;
+  --color-brand-600: #16a34a;
+  --color-brand-500: #22c55e;
   --color-brand-400: #4ade80;
   --color-brand-300: #86efac;
   --color-brand-200: #bbf7d0;
   --color-brand-100: #dcfce7;
   --color-brand-50: #f0fdf4;
 
-  --color-danger-600: #e11d48;
-  --color-danger-500: #f43f5e;
-  --color-danger-400: #fb7185;
+  --color-danger-600: #dc2626;
+  --color-danger-500: #ef4444;
+  --color-danger-400: #f87171;
 
   --font-display: var(--font-sora);
   --font-body: var(--font-inter);
   --font-mono: var(--font-jetbrains-mono);
 
-  --shadow-brand: 0 10px 15px -3px rgba(16, 185, 129, 0.1), 0 4px 6px -4px rgba(16, 185, 129, 0.1);
-  --shadow-brand-lg: 0 20px 25px -5px rgba(16, 185, 129, 0.15), 0 8px 10px -6px rgba(16, 185, 129, 0.1);
+  --shadow-brand: 0 0 30px rgba(74, 222, 128, 0.2), 0 0 15px rgba(74, 222, 128, 0.1);
+  --shadow-brand-lg: 0 0 50px rgba(74, 222, 128, 0.25), 0 0 25px rgba(74, 222, 128, 0.15);
 }
 
-/* Base styles */
+/* Base styles — dark gaming theme */
 html {
-  background: #ffffff;
-  color-scheme: light;
+  background: #0a0f0d;
+  color-scheme: dark;
   overscroll-behavior: none;
 }
 
@@ -55,23 +55,31 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(16, 185, 129, 0.2);
+  background: rgba(74, 222, 128, 0.2);
   border-radius: 999px;
 }
 
 /* Selection */
 ::selection {
-  background: rgba(16, 185, 129, 0.15);
-  color: #064e3b;
+  background: rgba(74, 222, 128, 0.2);
+  color: #dcfce7;
 }
 
-/* Shadow utilities */
+/* Neon glow shadows */
 .shadow-brand {
-  box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1), 0 4px 6px -4px rgba(16, 185, 129, 0.1);
+  box-shadow: 0 0 30px rgba(74, 222, 128, 0.2), 0 0 15px rgba(74, 222, 128, 0.1);
 }
 
 .shadow-brand-lg {
-  box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.15), 0 8px 10px -6px rgba(16, 185, 129, 0.1);
+  box-shadow: 0 0 50px rgba(74, 222, 128, 0.25), 0 0 25px rgba(74, 222, 128, 0.15);
+}
+
+.shadow-glow-sm {
+  box-shadow: 0 0 15px rgba(74, 222, 128, 0.15);
+}
+
+.shadow-glow-danger {
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.2), 0 0 15px rgba(239, 68, 68, 0.1);
 }
 
 /* Pulse animation for live indicators */
@@ -84,7 +92,7 @@ body {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-/* Kill flash */
+/* Kill flash — red flash */
 @keyframes kill-flash {
   0% { opacity: 0; }
   10% { opacity: 1; }
@@ -95,12 +103,48 @@ body {
   animation: kill-flash 0.8s ease-out forwards;
 }
 
-/* Gradient text */
+/* Gradient text — neon green */
 .text-gradient-green {
-  background: linear-gradient(135deg, #059669, #10b981, #4ade80);
+  background: linear-gradient(135deg, #22c55e, #4ade80, #86efac);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Neon text glow */
+.text-glow-green {
+  text-shadow: 0 0 20px rgba(74, 222, 128, 0.5), 0 0 40px rgba(74, 222, 128, 0.3);
+}
+
+.text-glow-red {
+  text-shadow: 0 0 20px rgba(239, 68, 68, 0.5), 0 0 40px rgba(239, 68, 68, 0.3);
+}
+
+/* Subtle grid pattern overlay for game atmosphere */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(74, 222, 128, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 222, 128, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Radial glow effect behind hero elements */
+.bg-radial-glow {
+  background: radial-gradient(ellipse at center, rgba(74, 222, 128, 0.12) 0%, transparent 70%);
+}
+
+.bg-radial-glow-red {
+  background: radial-gradient(ellipse at center, rgba(239, 68, 68, 0.1) 0%, transparent 70%);
+}
+
+/* Neon border pulse animation */
+@keyframes neon-pulse {
+  0%, 100% { border-color: rgba(74, 222, 128, 0.3); box-shadow: 0 0 20px rgba(74, 222, 128, 0.1); }
+  50% { border-color: rgba(74, 222, 128, 0.6); box-shadow: 0 0 30px rgba(74, 222, 128, 0.2); }
+}
+
+.animate-neon-pulse {
+  animation: neon-pulse 3s ease-in-out infinite;
 }
 
 /* Safe area padding for mobile */

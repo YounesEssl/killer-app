@@ -2,12 +2,12 @@
 
 import { motion } from "framer-motion";
 import type { Mission } from "@/lib/missions";
-import { MessageCircle, Handshake, Drama, Brain } from "lucide-react";
-import PlayerAvatar from "@/components/ui/PlayerAvatar";
+import { MessageCircle, Handshake, Drama, Brain, Swords } from "lucide-react";
+import ProfilePhoto from "@/components/ui/ProfilePhoto";
 
 interface MissionCardProps {
   targetName: string;
-  targetEmoji: string;
+  targetPhotoUrl: string | null;
   mission: Mission | null;
 }
 
@@ -20,7 +20,7 @@ const categoryIcons = {
 
 export default function MissionCard({
   targetName,
-  targetEmoji,
+  targetPhotoUrl,
   mission,
 }: MissionCardProps) {
   return (
@@ -28,38 +28,46 @@ export default function MissionCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ease: [0.22, 1, 0.36, 1], duration: 0.5, delay: 0.1 }}
-      className="bg-white rounded-3xl border-2 border-brand-200 shadow-brand p-6 space-y-5"
+      className="bg-[#111916] rounded-3xl border border-green-400/40 shadow-[0_0_40px_rgba(74,222,128,0.15)] p-6 space-y-5 relative overflow-hidden"
     >
-      <div className="space-y-3">
-        <p className="text-xs uppercase tracking-widest text-brand-600 font-[family-name:var(--font-display)] font-bold">
+      {/* Subtle green gradient at top */}
+      <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-green-500/5 to-transparent pointer-events-none" />
+
+      <div className="space-y-3 relative z-10">
+        <p className="text-xs uppercase tracking-widest text-green-400 font-[family-name:var(--font-display)] font-bold">
           Ta cible
         </p>
         <div className="flex items-center gap-4">
-          <PlayerAvatar avatarId={targetEmoji} size="lg" />
-          <h2 className="text-3xl font-bold text-slate-900 font-[family-name:var(--font-display)]">
+          <div className="relative">
+            <ProfilePhoto src={targetPhotoUrl} alt={targetName} size="lg" className="border-2 border-green-500/30 shadow-[0_0_20px_rgba(74,222,128,0.2)]" />
+            <div className="absolute -bottom-1 -right-1 bg-green-500 p-1 rounded-lg shadow-lg">
+              <Swords className="w-3 h-3 text-white" />
+            </div>
+          </div>
+          <h2 className="text-3xl font-bold text-white font-[family-name:var(--font-display)]">
             {targetName}
           </h2>
         </div>
       </div>
 
-      <div className="h-px bg-gradient-to-r from-transparent via-brand-200 to-transparent" />
+      <div className="h-px bg-gradient-to-r from-transparent via-green-500/30 to-transparent" />
 
-      <div className="space-y-3">
-        <p className="text-xs uppercase tracking-widest text-brand-600 font-[family-name:var(--font-display)] font-bold">
+      <div className="space-y-3 relative z-10">
+        <p className="text-xs uppercase tracking-widest text-green-400 font-[family-name:var(--font-display)] font-bold">
           Ta mission
         </p>
-        <p className="text-lg text-slate-700 leading-relaxed">
+        <p className="text-lg text-gray-300 leading-relaxed">
           {mission?.description || "Mission en cours de chargement..."}
         </p>
         {mission && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 pt-1">
             <span
-              className={`text-xs px-2.5 py-1 rounded-full font-bold font-[family-name:var(--font-display)] ${
+              className={`text-[10px] px-3 py-1 rounded-full font-bold font-[family-name:var(--font-display)] uppercase tracking-wider border ${
                 mission.difficulty === "easy"
-                  ? "bg-brand-100 text-brand-700"
+                  ? "bg-green-500/15 text-green-400 border-green-500/20"
                   : mission.difficulty === "medium"
-                  ? "bg-amber-50 text-amber-700"
-                  : "bg-rose-50 text-rose-600"
+                  ? "bg-amber-500/15 text-amber-400 border-amber-500/20"
+                  : "bg-red-500/15 text-red-400 border-red-500/20"
               }`}
             >
               {mission.difficulty === "easy"
@@ -73,7 +81,7 @@ export default function MissionCard({
               if (!cat) return null;
               const CatIcon = cat.icon;
               return (
-                <span className="flex items-center gap-1 text-xs text-slate-400">
+                <span className="flex items-center gap-1 text-[10px] text-gray-500 uppercase tracking-wider px-3 py-1 rounded-full border border-white/10 bg-white/5">
                   <CatIcon className="w-3.5 h-3.5" />
                   {cat.label}
                 </span>

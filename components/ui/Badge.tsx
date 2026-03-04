@@ -16,10 +16,10 @@ export default function Badge({
   pulse = false,
 }: BadgeProps) {
   const variants = {
-    green: "bg-brand-100 text-brand-700",
-    red: "bg-rose-50 text-rose-600",
-    neutral: "bg-slate-100 text-slate-600",
-    live: "bg-brand-100 text-brand-700",
+    green: "bg-green-500/15 text-green-400 border border-green-500/20",
+    red: "bg-red-500/15 text-red-400 border border-red-500/20",
+    neutral: "bg-white/5 text-gray-400 border border-white/10",
+    live: "bg-green-500/15 text-green-400 border border-green-500/20",
   };
 
   return (
@@ -33,14 +33,14 @@ export default function Badge({
     >
       {variant === "live" && (
         <span className="relative flex h-1.5 w-1.5">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-500 opacity-75" />
-          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-500" />
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)]" />
         </span>
       )}
       {pulse && variant !== "live" && (
         <span className="relative flex h-1.5 w-1.5">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-400" />
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-400" />
         </span>
       )}
       {children}

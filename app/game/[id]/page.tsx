@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "@/hooks/useSession";
+import { useAccount } from "@/hooks/useAccount";
 import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
 import { supabase } from "@/lib/supabase/client";
@@ -28,9 +28,9 @@ export default function GamePage({ params }: { params: Promise<{ id: string }> }
 function GamePageContent({ params }: { params: Promise<{ id: string }> }) {
   const { id: gameId } = use(params);
   const router = useRouter();
-  const { session, isLoading: sessionLoading } = useSession();
+  const { account, session } = useAccount();
   const { game, isLoading: gameLoading } = useGame(gameId);
-  const { player, target, isLoading: playerLoading } = usePlayer(
+  const { player, target, targetPhotoUrl, isLoading: playerLoading } = usePlayer(
     session?.gameId === gameId ? session?.playerId ?? null : null
   );
   const [players, setPlayers] = useState<Player[]>([]);
@@ -60,27 +60,27 @@ function GamePageContent({ params }: { params: Promise<{ id: string }> }) {
     return () => { supabase.removeChannel(channel); };
   }, [gameId]);
 
-  const isLoading = sessionLoading || gameLoading || playerLoading || playersLoading;
+  const isLoading = gameLoading || playerLoading || playersLoading;
 
   if (isLoading) {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-white">
-        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-dvh flex items-center justify-center bg-[#0a0f0d]">
+        <div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!game) {
     return (
-      <div className="min-h-dvh flex items-center justify-center px-6 bg-white">
+      <div className="min-h-dvh flex items-center justify-center px-6 bg-[#0a0f0d]">
         <div className="text-center space-y-3">
-          <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mx-auto">
-            <AlertCircle className="w-6 h-6 text-slate-400" />
+          <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto">
+            <AlertCircle className="w-6 h-6 text-gray-500" />
           </div>
-          <p className="text-slate-500">Partie introuvable</p>
+          <p className="text-gray-400">Partie introuvable</p>
           <button
             onClick={() => router.push("/")}
-            className="text-brand-600 text-sm font-semibold"
+            className="text-green-400 text-sm font-semibold"
           >
             Retour a l&apos;accueil
           </button>
@@ -110,15 +110,15 @@ function GamePageContent({ params }: { params: Promise<{ id: string }> }) {
   // Active game - need player session
   if (!session || !player) {
     return (
-      <div className="min-h-dvh flex items-center justify-center px-6 bg-white">
+      <div className="min-h-dvh flex items-center justify-center px-6 bg-[#0a0f0d]">
         <div className="text-center space-y-3">
-          <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mx-auto">
-            <Lock className="w-6 h-6 text-slate-400" />
+          <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto">
+            <Lock className="w-6 h-6 text-gray-500" />
           </div>
-          <p className="text-slate-500">Session expiree</p>
+          <p className="text-gray-400">Session expiree</p>
           <button
             onClick={() => router.push("/join?code=" + game.join_code)}
-            className="text-brand-600 text-sm font-semibold"
+            className="text-green-400 text-sm font-semibold"
           >
             Retrouver ma session
           </button>
@@ -146,18 +146,22 @@ function GamePageContent({ params }: { params: Promise<{ id: string }> }) {
   const mission = player.mission_id ? getMissionById(player.mission_id) ?? null : null;
 
   return (
-    <div className="min-h-dvh px-5 py-6 max-w-lg mx-auto bg-white">
-      <div className="mb-4">
-        <ConnectedAs />
+    <div className="min-h-dvh px-5 py-6 max-w-lg mx-auto bg-[#0a0f0d] relative">
+      <div className="fixed inset-0 bg-grid pointer-events-none" />
+      <div className="relative z-10">
+        <div className="mb-4">
+          <ConnectedAs />
+        </div>
+        <PlayerDashboard
+          player={player}
+          target={target}
+          targetPhotoUrl={targetPhotoUrl}
+          mission={mission}
+          survivorsCount={alivePlayers.length}
+          totalPlayers={players.length}
+          gameId={gameId}
+        />
       </div>
-      <PlayerDashboard
-        player={player}
-        target={target}
-        mission={mission}
-        survivorsCount={alivePlayers.length}
-        totalPlayers={players.length}
-        gameId={gameId}
-      />
       <BottomNav gameId={gameId} />
     </div>
   );

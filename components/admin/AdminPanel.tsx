@@ -15,7 +15,7 @@ import {
   Eye,
   ArrowRight,
 } from "lucide-react";
-import PlayerAvatar from "@/components/ui/PlayerAvatar";
+import ProfilePhoto from "@/components/ui/ProfilePhoto";
 
 interface AdminPanelProps {
   game: Game;
@@ -30,9 +30,29 @@ export default function AdminPanel({
 }: AdminPanelProps) {
   const [players, setPlayers] = useState(initialPlayers);
   const [events, setEvents] = useState(initialEvents);
+  const [photoMap, setPhotoMap] = useState<Record<string, string | null>>({});
 
   const alivePlayers = players.filter((p) => p.is_alive);
   const deadPlayers = players.filter((p) => !p.is_alive);
+
+  // Fetch photos for all players
+  const fetchPhotos = async (playerList: Player[]) => {
+    const accountIds = playerList.filter((p) => p.account_id).map((p) => p.account_id!);
+    if (accountIds.length === 0) return;
+
+    const { data } = await supabase
+      .from("accounts")
+      .select("id, photo_url")
+      .in("id", accountIds);
+
+    if (data) {
+      setPhotoMap(Object.fromEntries(data.map((a) => [a.id, a.photo_url])));
+    }
+  };
+
+  useEffect(() => {
+    fetchPhotos(players);
+  }, [players]);
 
   useEffect(() => {
     const channel = supabase
@@ -46,7 +66,12 @@ export default function AdminPanel({
             .select("*")
             .eq("game_id", game.id)
             .order("joined_at", { ascending: true })
-            .then(({ data }) => { if (data) setPlayers(data); });
+            .then(({ data }) => {
+              if (data) {
+                setPlayers(data);
+                fetchPhotos(data);
+              }
+            });
         }
       )
       .on(
@@ -66,10 +91,13 @@ export default function AdminPanel({
   const getPlayerName = (id: string) =>
     players.find((p) => p.id === id)?.name || "Inconnu";
 
+  const getPhotoUrl = (player: Player) =>
+    player.account_id ? photoMap[player.account_id] ?? null : null;
+
   return (
     <div className="space-y-6 pb-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold font-[family-name:var(--font-display)] text-slate-900">
+        <h1 className="text-2xl font-bold font-[family-name:var(--font-display)] text-white">
           Admin Panel
         </h1>
         <Badge variant={game.status === "active" ? "live" : game.status === "finished" ? "red" : "green"}>
@@ -80,31 +108,31 @@ export default function AdminPanel({
       <div className="grid grid-cols-3 gap-3">
         <Card padding="sm">
           <div className="text-center">
-            <Users className="w-5 h-5 text-brand-500 mx-auto mb-1" />
-            <p className="text-xl font-bold font-[family-name:var(--font-display)] text-slate-900">{players.length}</p>
-            <p className="text-xs text-slate-400">joueurs</p>
+            <Users className="w-5 h-5 text-green-500/60 mx-auto mb-1" />
+            <p className="text-xl font-bold font-[family-name:var(--font-display)] text-white">{players.length}</p>
+            <p className="text-xs text-gray-500">joueurs</p>
           </div>
         </Card>
         <Card padding="sm">
           <div className="text-center">
-            <Play className="w-5 h-5 text-brand-500 mx-auto mb-1" />
-            <p className="text-xl font-bold font-[family-name:var(--font-display)] text-slate-900">{alivePlayers.length}</p>
-            <p className="text-xs text-slate-400">vivants</p>
+            <Play className="w-5 h-5 text-green-500/60 mx-auto mb-1" />
+            <p className="text-xl font-bold font-[family-name:var(--font-display)] text-white">{alivePlayers.length}</p>
+            <p className="text-xs text-gray-500">vivants</p>
           </div>
         </Card>
         <Card padding="sm">
           <div className="text-center">
-            <Skull className="w-5 h-5 text-rose-500 mx-auto mb-1" />
-            <p className="text-xl font-bold font-[family-name:var(--font-display)] text-slate-900">{deadPlayers.length}</p>
-            <p className="text-xs text-slate-400">morts</p>
+            <Skull className="w-5 h-5 text-red-400/60 mx-auto mb-1" />
+            <p className="text-xl font-bold font-[family-name:var(--font-display)] text-white">{deadPlayers.length}</p>
+            <p className="text-xs text-gray-500">morts</p>
           </div>
         </Card>
       </div>
 
       {game.status === "active" && (
         <Card>
-          <h2 className="text-lg font-bold font-[family-name:var(--font-display)] text-slate-900 mb-3 flex items-center gap-2">
-            <Eye className="w-5 h-5 text-brand-500" />
+          <h2 className="text-lg font-bold font-[family-name:var(--font-display)] text-white mb-3 flex items-center gap-2">
+            <Eye className="w-5 h-5 text-green-400" />
             Chaine des assassinats
           </h2>
           <div className="space-y-2">
@@ -114,15 +142,15 @@ export default function AdminPanel({
               return (
                 <div
                   key={player.id}
-                  className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 text-sm"
+                  className="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 text-sm"
                 >
-                  <PlayerAvatar avatarId={player.avatar_emoji} size="sm" />
-                  <span className="font-medium text-slate-900">{player.name}</span>
-                  <ArrowRight className="w-3 h-3 text-brand-500 flex-shrink-0" />
-                  <PlayerAvatar avatarId={target?.avatar_emoji || ""} size="sm" />
-                  <span className="text-slate-500">{target?.name}</span>
+                  <ProfilePhoto src={getPhotoUrl(player)} alt={player.name} size="sm" />
+                  <span className="font-medium text-white">{player.name}</span>
+                  <ArrowRight className="w-3 h-3 text-green-400 flex-shrink-0" />
+                  <ProfilePhoto src={target ? getPhotoUrl(target) : null} alt={target?.name || ""} size="sm" />
+                  <span className="text-gray-400">{target?.name}</span>
                   {mission && (
-                    <span className="text-xs text-slate-400 truncate ml-auto">
+                    <span className="text-xs text-gray-500 truncate ml-auto">
                       {mission.description}
                     </span>
                   )}
@@ -134,8 +162,8 @@ export default function AdminPanel({
       )}
 
       <Card>
-        <h2 className="text-lg font-bold font-[family-name:var(--font-display)] text-slate-900 mb-3 flex items-center gap-2">
-          <Users className="w-5 h-5 text-brand-500" />
+        <h2 className="text-lg font-bold font-[family-name:var(--font-display)] text-white mb-3 flex items-center gap-2">
+          <Users className="w-5 h-5 text-green-400" />
           Tous les joueurs
         </h2>
         <div className="space-y-2">
@@ -143,20 +171,20 @@ export default function AdminPanel({
             <div
               key={player.id}
               className={`flex items-center gap-3 p-2.5 rounded-xl ${
-                player.is_alive ? "bg-slate-50" : "bg-slate-50 opacity-50"
+                player.is_alive ? "bg-white/5" : "bg-white/5 opacity-50"
               }`}
             >
-              <PlayerAvatar avatarId={player.avatar_emoji} size="md" />
+              <ProfilePhoto src={getPhotoUrl(player)} alt={player.name} size="md" />
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate text-slate-900">{player.name}</p>
-                <p className="text-xs text-slate-400 font-[family-name:var(--font-mono)]">
+                <p className="font-medium text-sm truncate text-white">{player.name}</p>
+                <p className="text-xs text-gray-500 font-[family-name:var(--font-mono)]">
                   Code: {player.kill_code}
                 </p>
               </div>
               <div className="text-right flex-shrink-0">
-                <p className="text-sm font-bold text-slate-900">{player.kill_count} kills</p>
+                <p className="text-sm font-bold text-white">{player.kill_count} kills</p>
                 <span
-                  className={`text-xs ${player.is_alive ? "text-brand-600" : "text-rose-500"}`}
+                  className={`text-xs ${player.is_alive ? "text-green-400" : "text-red-400"}`}
                 >
                   {player.is_alive ? "Vivant" : "Mort"}
                 </span>
@@ -168,26 +196,26 @@ export default function AdminPanel({
 
       {events.length > 0 && (
         <Card>
-          <h2 className="text-lg font-bold font-[family-name:var(--font-display)] text-slate-900 mb-3 flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-brand-500" />
+          <h2 className="text-lg font-bold font-[family-name:var(--font-display)] text-white mb-3 flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-green-400" />
             Timeline des kills
           </h2>
           <div className="space-y-2">
             {events.map((event) => (
               <div
                 key={event.id}
-                className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 text-sm"
+                className="flex items-center gap-3 p-2.5 rounded-xl bg-white/5 text-sm"
               >
-                <Skull className="w-4 h-4 text-rose-500 flex-shrink-0" />
+                <Skull className="w-4 h-4 text-red-400 flex-shrink-0" />
                 <div className="flex-1">
-                  <p className="text-slate-900">
+                  <p className="text-white">
                     <span className="font-medium">{getPlayerName(event.killer_id)}</span>
                     {" "}a elimine{" "}
-                    <span className="text-rose-500">{getPlayerName(event.victim_id)}</span>
+                    <span className="text-red-400">{getPlayerName(event.victim_id)}</span>
                   </p>
-                  <p className="text-xs text-slate-400">{event.mission_description}</p>
+                  <p className="text-xs text-gray-500">{event.mission_description}</p>
                 </div>
-                <span className="text-xs text-slate-400 flex-shrink-0">
+                <span className="text-xs text-gray-500 flex-shrink-0">
                   {formatRelativeTime(event.killed_at)}
                 </span>
               </div>

@@ -17,13 +17,13 @@ interface ButtonProps extends HTMLMotionProps<"button"> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white shadow-brand",
+    "bg-green-500 hover:bg-green-400 active:bg-green-600 text-white shadow-[0_0_30px_rgba(74,222,128,0.3)] hover:shadow-[0_0_40px_rgba(74,222,128,0.4)]",
   secondary:
-    "bg-white border-2 border-brand-500 text-brand-600 hover:bg-brand-50",
+    "bg-white/5 border border-green-500/30 text-green-400 hover:bg-green-500/10 hover:border-green-400/50 backdrop-blur-sm",
   danger:
-    "bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-100",
+    "bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.15)]",
   ghost:
-    "text-slate-500 hover:bg-slate-50",
+    "text-gray-400 hover:bg-white/5 hover:text-gray-300",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
@@ -49,7 +49,7 @@ export default function Button({
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
       className={cn(
         "inline-flex items-center justify-center font-bold transition-all cursor-pointer",
-        "disabled:opacity-50 disabled:cursor-not-allowed",
+        "disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none",
         "font-[family-name:var(--font-display)]",
         variantStyles[variant],
         sizeStyles[size],

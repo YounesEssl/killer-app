@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
-import { useSession } from "@/hooks/useSession";
+import { useAccount } from "@/hooks/useAccount";
 import { useGame } from "@/hooks/useGame";
 import type { Player } from "@/lib/supabase/types";
 import Leaderboard from "@/components/game/Leaderboard";
@@ -24,7 +24,7 @@ export default function LeaderboardPage({ params }: { params: Promise<{ id: stri
 
 function LeaderboardPageContent({ params }: { params: Promise<{ id: string }> }) {
   const { id: gameId } = use(params);
-  const { session } = useSession();
+  const { session } = useAccount();
   const { game } = useGame(gameId);
   const router = useRouter();
   const [players, setPlayers] = useState<Player[]>([]);
@@ -50,42 +50,45 @@ function LeaderboardPageContent({ params }: { params: Promise<{ id: string }> })
 
   if (isLoading || !game || game.status !== "finished") {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-white">
-        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-dvh flex items-center justify-center bg-[#0a0f0d]">
+        <div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-dvh px-5 py-6 pb-24 max-w-lg mx-auto bg-white">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ ease: [0.22, 1, 0.36, 1] }}
-        className="space-y-6"
-      >
-        <div className="space-y-2">
-          <ConnectedAs />
-          <div className="flex items-center gap-3">
-            <Trophy className="w-6 h-6 text-brand-600" />
-            <h1 className="text-2xl font-bold font-[family-name:var(--font-display)] text-slate-900">
-              Classement final
-            </h1>
+    <div className="min-h-dvh px-5 py-6 pb-24 max-w-lg mx-auto bg-[#0a0f0d] relative">
+      <div className="fixed inset-0 bg-grid pointer-events-none" />
+      <div className="relative z-10">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-6"
+        >
+          <div className="space-y-2">
+            <ConnectedAs />
+            <div className="flex items-center gap-3">
+              <Trophy className="w-6 h-6 text-green-400" />
+              <h1 className="text-2xl font-bold font-[family-name:var(--font-display)] text-white">
+                Classement final
+              </h1>
+            </div>
           </div>
-        </div>
 
-        <Leaderboard
-          players={players}
-          currentPlayerId={session?.playerId ?? null}
-          lastSurvivorId={players.find((p) => p.is_alive)?.id ?? null}
-        />
+          <Leaderboard
+            players={players}
+            currentPlayerId={session?.playerId ?? null}
+            lastSurvivorId={players.find((p) => p.is_alive)?.id ?? null}
+          />
 
-        <Link href={`/game/${gameId}`}>
-          <Button variant="secondary" fullWidth>
-            Retour
-          </Button>
-        </Link>
-      </motion.div>
+          <Link href={`/game/${gameId}`}>
+            <Button variant="secondary" fullWidth>
+              Retour
+            </Button>
+          </Link>
+        </motion.div>
+      </div>
     </div>
   );
 }

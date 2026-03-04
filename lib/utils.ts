@@ -60,3 +60,15 @@ export function cn(
 ): string {
   return classes.filter(Boolean).join(" ");
 }
+
+export function normalizeUsername(s: string): string {
+  return s
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+export function generateSecretCode(): string {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+}

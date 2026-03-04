@@ -1,58 +1,68 @@
-# KILLER Design System v2.0 — Green + White
+# KILLER Design System v3.0 — Dark Gaming Theme
 
 ## Overview
-- **Theme**: White-first, Green-accented (Emerald 500 as primary)
-- **Typography**: Sora (Headings/Display), Inter (Body)
+- **Theme**: Dark-first with neon green accents — immersive gaming atmosphere
+- **Typography**: Sora (Headings/Display), Inter (Body), JetBrains Mono (Codes)
 - **Corner Radius**: 2rem (32px) for cards/sections, 1rem (16px) for buttons/inputs
-- **Shadows**: Soft emerald-tinted shadows for active states
+- **Shadows**: Neon green glow shadows for active/primary states
 - **Interactivity**: Spring-based micro-interactions, scale down on tap
 - **Iconography**: Lucide-React exclusively (NO emojis anywhere)
 - **Mobile-first**: 100% touch-optimized, generous spacing
+- **Atmosphere**: Dark gaming UI with neon green glows, subtle grid patterns, glassmorphism on dark surfaces
 
 ---
 
 ## Color Palette
 
-### Primary Green (Emerald)
+### Background (Dark)
 ```
---color-brand-50:  #f0fdf4   (lightest backgrounds, hover states)
---color-brand-100: #dcfce7   (light backgrounds, badges)
---color-brand-200: #bbf7d0   (borders, dividers)
---color-brand-300: #86efac   (decorative)
---color-brand-400: #4ade80   (secondary buttons, highlights)
---color-brand-500: #10b981   (PRIMARY — buttons, CTAs, active states)
---color-brand-600: #059669   (hover states for primary)
---color-brand-700: #047857   (pressed states)
---color-brand-800: #065f46   (dark text on light green)
---color-brand-900: #064e3b   (headings on white)
---color-brand-950: #022c22   (darkest, sparingly used)
+--color-bg-primary:   #0a0f0d   (main background — near black with green tint)
+--color-bg-secondary: #111916   (cards, elevated surfaces)
+--color-bg-tertiary:  #1a2520   (inputs, secondary cards)
+--color-bg-glass:     rgba(17, 25, 22, 0.8)  (glassmorphism panels)
 ```
 
-### Neutrals (White + Slate)
+### Primary Green (Neon/Light Green)
 ```
-White:       #ffffff   (primary background)
-Slate-50:    #f8fafc   (secondary background, input bg)
-Slate-100:   #f1f5f9   (borders, dividers, badge bg)
-Slate-200:   #e2e8f0   (stronger borders)
-Slate-300:   #cbd5e1   (disabled states)
-Slate-400:   #94a3b8   (placeholder text, secondary icons)
-Slate-500:   #64748b   (body text secondary)
-Slate-600:   #475569   (body text)
-Slate-700:   #334155   (strong body text, labels)
-Slate-900:   #0f172a   (headings, primary text)
+--color-brand-50:  #f0fdf4   (rarely used, very light green)
+--color-brand-100: #dcfce7   (subtle glow tints)
+--color-brand-200: #bbf7d0   (borders on hover)
+--color-brand-300: #86efac   (decorative, secondary text)
+--color-brand-400: #4ade80   (PRIMARY ACCENT — neon green, CTAs, glow)
+--color-brand-500: #22c55e   (buttons, active states)
+--color-brand-600: #16a34a   (hover states)
+--color-brand-700: #15803d   (pressed states)
+--color-brand-800: #166534   (dark green accents)
+--color-brand-900: #14532d   (very dark green)
+--color-brand-950: #052e16   (darkest)
+```
+
+### Neutrals (on dark bg)
+```
+White:       #ffffff   (primary text, headings)
+Gray-100:    #f1f5f9   (primary text, strong)
+Gray-300:    #d1d5db   (secondary text)
+Gray-400:    #94a3b8   (tertiary text, labels)
+Gray-500:    #64748b   (placeholder, disabled)
+Gray-600:    #475569   (muted text)
+Gray-700:    #334155   (borders on dark)
+Gray-800:    #1e293b   (subtle borders)
 ```
 
 ### Semantic
 ```
-Danger:   bg-rose-50 text-rose-600 border-rose-100 (elimination, errors)
+Danger:   bg-red-500/10 text-red-400 border-red-500/20 (elimination, errors, death)
 Success:  Uses brand green
-Warning:  bg-amber-50 text-amber-700
+Warning:  bg-amber-500/10 text-amber-400
 ```
 
-### Shadows
+### Glow Shadows
 ```css
---shadow-brand:    0 10px 15px -3px rgba(16, 185, 129, 0.1), 0 4px 6px -4px rgba(16, 185, 129, 0.1);
---shadow-brand-lg: 0 20px 25px -5px rgba(16, 185, 129, 0.15), 0 8px 10px -6px rgba(16, 185, 129, 0.1);
+--glow-sm:    0 0 15px rgba(74, 222, 128, 0.15);
+--glow-md:    0 0 30px rgba(74, 222, 128, 0.2), 0 0 15px rgba(74, 222, 128, 0.1);
+--glow-lg:    0 0 50px rgba(74, 222, 128, 0.25), 0 0 25px rgba(74, 222, 128, 0.15);
+--glow-xl:    0 0 80px rgba(74, 222, 128, 0.3), 0 0 40px rgba(74, 222, 128, 0.2);
+--glow-danger: 0 0 30px rgba(239, 68, 68, 0.2), 0 0 15px rgba(239, 68, 68, 0.1);
 ```
 
 ---
@@ -64,20 +74,20 @@ Warning:  bg-amber-50 text-amber-700
 - **Body**: `Inter` — font-sans, legendary readability
 - **Mono**: `JetBrains Mono` — font-mono, for codes and numbers
 
-### Scale
+### Scale (on dark backgrounds — white/light text)
 ```
-H1: font-display text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900
-H2: font-display text-3xl md:text-4xl font-bold tracking-tight text-slate-900
-H3: font-display text-xl md:text-2xl font-bold text-slate-900
-H4: font-display text-lg font-bold text-slate-900
+H1: font-display text-5xl md:text-6xl font-extrabold tracking-tight text-white
+H2: font-display text-3xl md:text-4xl font-bold tracking-tight text-white
+H3: font-display text-xl md:text-2xl font-bold text-white
+H4: font-display text-lg font-bold text-white
 
-Body Large:  text-xl text-slate-700 font-medium leading-relaxed
-Body:        text-base text-slate-600 leading-relaxed
-Body Small:  text-sm text-slate-500
-Caption:     text-xs text-slate-400
+Body Large:  text-xl text-gray-300 font-medium leading-relaxed
+Body:        text-base text-gray-300 leading-relaxed
+Body Small:  text-sm text-gray-400
+Caption:     text-xs text-gray-500
 
-Label:       text-sm font-semibold text-slate-700
-Overline:    text-xs font-bold text-emerald-500 tracking-widest uppercase
+Label:       text-sm font-semibold text-gray-300
+Overline:    text-xs font-bold text-green-400 tracking-widest uppercase
 ```
 
 ---
@@ -88,7 +98,6 @@ Overline:    text-xs font-bold text-emerald-500 tracking-widest uppercase
 ```
 max-w-lg mx-auto px-5    (mobile default)
 md:max-w-2xl md:px-8     (tablet)
-lg:max-w-5xl lg:px-6     (desktop)
 ```
 
 ### Section Spacing
@@ -99,109 +108,89 @@ Card gap:        gap-4 md:gap-6
 Inner padding:   p-5 md:p-6
 ```
 
-### Touch Targets
-```
-Minimum:  min-h-[48px] min-w-[48px]
-Buttons:  py-3.5 px-6 (comfortable tap)
-Nav items: p-3
-```
-
 ---
 
 ## Components
 
 ### Buttons
 ```tsx
-// Primary (main CTAs)
-className="bg-emerald-500 text-white font-bold px-6 py-3.5 rounded-2xl shadow-brand
-           hover:bg-emerald-600 active:bg-emerald-700 transition-all"
-// + whileTap={{ scale: 0.96 }} with SPRING_SNAPPY
+// Primary (main CTAs) — neon green glow
+className="bg-green-500 text-white font-bold px-6 py-3.5 rounded-2xl
+           shadow-[0_0_30px_rgba(74,222,128,0.3)] hover:bg-green-400
+           hover:shadow-[0_0_40px_rgba(74,222,128,0.4)] active:bg-green-600 transition-all"
 
-// Secondary (outline)
-className="bg-white border-2 border-emerald-500 text-emerald-600 font-bold px-6 py-3.5 rounded-2xl
-           hover:bg-emerald-50 transition-all"
+// Secondary (glass outline on dark)
+className="bg-white/5 border border-green-500/30 text-green-400 font-bold px-6 py-3.5 rounded-2xl
+           hover:bg-green-500/10 hover:border-green-400/50 transition-all backdrop-blur-sm"
 
-// Ghost
-className="text-slate-500 font-bold px-6 py-3.5 rounded-2xl hover:bg-slate-50 transition-all"
+// Ghost (on dark)
+className="text-gray-400 font-bold px-6 py-3.5 rounded-2xl hover:bg-white/5 transition-all"
 
-// Danger
-className="bg-rose-50 text-rose-600 border border-rose-100 font-bold px-6 py-3.5 rounded-2xl
-           hover:bg-rose-100 transition-all"
+// Danger (red glow)
+className="bg-red-500/10 text-red-400 border border-red-500/20 font-bold px-6 py-3.5 rounded-2xl
+           hover:bg-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.15)] transition-all"
 ```
 
 ### Cards
 ```tsx
-// Standard Card
-className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5
-           hover:shadow-md hover:-translate-y-0.5 transition-all"
+// Standard Card (dark glass)
+className="bg-[#111916] rounded-3xl border border-green-500/10 shadow-lg p-5"
 
-// Highlighted Card (with green accent)
-className="bg-white rounded-3xl border-2 border-emerald-200 shadow-brand p-5"
+// Highlighted Card (green glow border)
+className="bg-[#111916] rounded-3xl border border-green-500/30 shadow-[0_0_30px_rgba(74,222,128,0.1)] p-5"
 
-// Green Card (inverted)
-className="bg-emerald-500 rounded-3xl text-white shadow-brand-lg p-5"
+// Glass Card
+className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-5"
+
+// Neon Card (for important items like mission card)
+className="bg-[#111916] rounded-3xl border border-green-400/40 shadow-[0_0_40px_rgba(74,222,128,0.15)] p-6
+           relative overflow-hidden"
+// + subtle green gradient overlay at top
 ```
 
-### Inputs
+### Inputs (on dark)
 ```tsx
-// Standard Input
-className="w-full px-4 py-3.5 rounded-2xl border-2 border-slate-100 bg-slate-50
-           focus:border-emerald-500 focus:bg-white focus:outline-none
-           text-slate-900 placeholder:text-slate-400 transition-all"
-
-// With label
-<label className="text-sm font-semibold text-slate-700 ml-1">Label</label>
-
-// Error state
-className="... border-rose-300 focus:border-rose-500"
-<span className="text-xs text-rose-500 ml-1 mt-1">Error message</span>
+className="w-full px-4 py-3.5 rounded-2xl border border-white/10 bg-white/5
+           focus:border-green-500/50 focus:bg-white/10 focus:shadow-[0_0_20px_rgba(74,222,128,0.1)]
+           focus:outline-none text-white placeholder:text-gray-500 transition-all backdrop-blur-sm"
 ```
 
 ### Badges
 ```tsx
-// Neutral
-className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-widest"
-
-// Green
-className="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-widest"
+// Green (primary)
+className="bg-green-500/15 text-green-400 px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-widest border border-green-500/20"
 
 // Live (with pulse dot)
-className="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-widest
-           inline-flex items-center gap-1.5"
-// + <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+// same as green + <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.6)]" />
 
 // Danger
-className="bg-rose-50 text-rose-600 px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-widest"
+className="bg-red-500/15 text-red-400 px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-widest border border-red-500/20"
 ```
 
-### Bottom Navigation (Mobile)
+### Bottom Navigation (Mobile — dark glass)
 ```tsx
-// Container
 className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm z-50
-           bg-white/90 backdrop-blur-xl border border-slate-200 shadow-2xl rounded-3xl p-2
+           bg-[#111916]/90 backdrop-blur-xl border border-green-500/15 shadow-2xl rounded-3xl p-2
            flex justify-around items-center"
 
 // Active tab
-className="p-3 rounded-2xl bg-emerald-500 text-white shadow-brand transition-all"
+className="p-3 rounded-2xl bg-green-500 text-white shadow-[0_0_20px_rgba(74,222,128,0.3)] transition-all"
 
 // Inactive tab
-className="p-3 rounded-2xl text-slate-400 hover:bg-slate-50 transition-all"
+className="p-3 rounded-2xl text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-all"
 ```
 
-### Bottom Sheet / Modal
+### Bottom Sheet / Modal (dark)
 ```tsx
 // Overlay
-className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
 
 // Sheet
-className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl
+className="fixed bottom-0 left-0 right-0 z-50 bg-[#111916] border-t border-green-500/15 rounded-t-3xl shadow-2xl
            max-h-[85vh] overflow-auto pb-safe"
 
 // Drag handle
-className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mt-3 mb-4"
-
-// Header
-className="px-5 py-4 border-b border-slate-100 flex items-center justify-between"
+className="w-12 h-1.5 bg-gray-600 rounded-full mx-auto mt-3 mb-4"
 ```
 
 ---
@@ -213,12 +202,6 @@ className="px-5 py-4 border-b border-slate-100 flex items-center justify-between
 const SPRING_SNAPPY = { type: "spring", stiffness: 400, damping: 30 };
 const SPRING_BOUNCY = { type: "spring", stiffness: 300, damping: 15 };
 const SPRING_GENTLE = { type: "spring", stiffness: 200, damping: 20 };
-```
-
-### Transitions
-```tsx
-const EASE_OUT = { ease: [0.22, 1, 0.36, 1], duration: 0.5 };
-const EASE_OUT_SLOW = { ease: [0.22, 1, 0.36, 1], duration: 0.7 };
 ```
 
 ### Page Transitions
@@ -243,116 +226,59 @@ const STAGGER_ITEM = {
 
 ### Micro-Interactions
 ```tsx
-// Button tap
 whileTap={{ scale: 0.96 }} transition={SPRING_SNAPPY}
-
-// Card hover
-whileHover={{ y: -2, shadow: "0 20px 25px -5px rgba(16, 185, 129, 0.15)" }}
-
-// Icon hover (in interactive contexts)
-whileHover={{ scale: 1.1, rotate: 5 }} transition={SPRING_BOUNCY}
-
-// Live pulse indicator
-animate={{ scale: [1, 2.5], opacity: [0.5, 0] }}
-transition={{ duration: 2, repeat: Infinity }}
 ```
 
-### Modal / Bottom Sheet
-```tsx
-// Overlay: animate={{ opacity: 1 }} initial={{ opacity: 0 }}
-// Sheet:   animate={{ y: 0 }}       initial={{ y: "100%" }} transition={SPRING_GENTLE}
+---
+
+## Special Effects
+
+### Neon Text Glow
+```css
+.text-glow-green {
+  text-shadow: 0 0 20px rgba(74, 222, 128, 0.5), 0 0 40px rgba(74, 222, 128, 0.3);
+}
+```
+
+### Gradient Text (neon green)
+```css
+.text-gradient-green {
+  background: linear-gradient(135deg, #22c55e, #4ade80, #86efac);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+```
+
+### Subtle Grid Pattern (background atmosphere)
+```css
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(74, 222, 128, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 222, 128, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+```
+
+### Radial Glow (behind hero elements)
+```css
+.bg-radial-glow {
+  background: radial-gradient(ellipse at center, rgba(74, 222, 128, 0.12) 0%, transparent 70%);
+}
 ```
 
 ---
 
 ## Icons (Lucide React)
+- Size in buttons: `w-4 h-4` or `size={16}`
+- Size standalone: `w-5 h-5`
+- Size feature: `w-6 h-6`
+- Size hero: `w-8 h-8`
 
-### Convention
-- **Size in buttons**: `w-4 h-4` or `size={16}`
-- **Size standalone**: `w-5 h-5` or `size={20}`
-- **Size feature icons**: `w-6 h-6` or `size={24}`
-- **Size hero/display**: `w-8 h-8` or `size={32}`
-- **Stroke width**: Default (2) for most, 1.5 for large display icons
-
-### Key Icon Mappings
-```
-Target (crosshair)  → Target icon (current target)
-Mission/Objective    → Scroll or FileText icon
-Kill/Eliminate       → Skull icon
-Players/Survivors    → Users icon
-Winner/Victory       → Trophy icon
-Timer/Duration       → Clock icon
-Code/Secret          → Lock or KeyRound icon
-Share                → Share2 icon
-Copy                 → Copy icon
-QR Code              → QrCode icon
-Settings/Admin       → Settings icon
-Back/Navigate        → ArrowLeft, ChevronLeft icon
-Close                → X icon
-Game/Play            → Gamepad2 or Play icon
-Shield/Protected     → Shield icon
-Alive status         → Heart or CircleDot icon
-Dead status          → Skull icon
-Feed/Activity        → Activity or Radio icon
-Leaderboard/Rank     → BarChart3 or Medal icon
-Join                 → UserPlus icon
-Create               → Plus icon
-```
-
-### NO EMOJIS
-Replace ALL emoji usage:
-- 🎯 → `<Target />` icon
-- 💀 → `<Skull />` icon
-- 🏆 → `<Trophy />` icon
-- 👥 → `<Users />` icon
-- 🥇🥈🥉 → `<Medal />` with gold/silver/bronze colors
-- 🗣️🤝🎭🧠 → `<MessageCircle />`, `<Handshake />`, `<Drama />`, `<Brain />` (category icons)
-- Player avatars → `<User />` icon in colored circles
+### NO EMOJIS — use Lucide icons only.
 
 ---
 
-## CSS Utilities (globals.css)
-
-### @theme inline tokens
-```css
-@theme inline {
-  --color-brand-50: #f0fdf4;
-  --color-brand-100: #dcfce7;
-  --color-brand-200: #bbf7d0;
-  --color-brand-300: #86efac;
-  --color-brand-400: #4ade80;
-  --color-brand-500: #10b981;
-  --color-brand-600: #059669;
-  --color-brand-700: #047857;
-  --color-brand-800: #065f46;
-  --color-brand-900: #064e3b;
-  --color-brand-950: #022c22;
-
-  --font-display: var(--font-sora);
-  --font-body: var(--font-inter);
-  --font-mono: var(--font-jetbrains-mono);
-
-  --shadow-brand: 0 10px 15px -3px rgba(16, 185, 129, 0.1), 0 4px 6px -4px rgba(16, 185, 129, 0.1);
-  --shadow-brand-lg: 0 20px 25px -5px rgba(16, 185, 129, 0.15), 0 8px 10px -6px rgba(16, 185, 129, 0.1);
-}
-```
-
-### Key Utility Classes
-```css
-/* Selection */
-::selection { background: rgba(16, 185, 129, 0.15); color: #064e3b; }
-
-/* Scrollbar */
-::-webkit-scrollbar-thumb { background: rgba(16, 185, 129, 0.2); }
-
-/* Safe areas */
-.pb-safe { padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px); }
-.pt-safe { padding-top: max(env(safe-area-inset-top, 0px), 16px); }
-```
-
----
-
-## Reference Code — Atomic Components
+## Reference Code — Key Patterns
 
 ```tsx
 // cn utility
@@ -366,18 +292,13 @@ const SPRING_BOUNCY = { type: "spring" as const, stiffness: 300, damping: 15 };
 const SPRING_GENTLE = { type: "spring" as const, stiffness: 200, damping: 20 };
 const EASE_OUT = { ease: [0.22, 1, 0.36, 1], duration: 0.5 };
 
-const PAGE_VARIANTS = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0, transition: EASE_OUT },
-  exit: { opacity: 0, y: -8, transition: { ease: [0.22, 1, 0.36, 1], duration: 0.3 } },
-};
-
-const STAGGER_CONTAINER = {
-  animate: { transition: { staggerChildren: 0.06 } },
-};
-
-const STAGGER_ITEM = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0, transition: { ease: [0.22, 1, 0.36, 1], duration: 0.4 } },
-};
+// Dark background base
+<div className="min-h-dvh bg-[#0a0f0d]">
+  {/* Grid pattern overlay */}
+  <div className="fixed inset-0 bg-grid pointer-events-none" />
+  {/* Radial glow behind main content */}
+  <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-radial-glow pointer-events-none" />
+  {/* Content */}
+  <div className="relative z-10">...</div>
+</div>
 ```

@@ -1,19 +1,19 @@
 "use client";
 
-import { useAuth } from "@/hooks/useAuth";
-import { User } from "lucide-react";
+import { useAccount } from "@/hooks/useAccount";
+import ProfilePhoto from "@/components/ui/ProfilePhoto";
 
 export default function ConnectedAs() {
-  const { fullName, loading } = useAuth();
+  const { account, isLoading } = useAccount();
 
-  if (loading || !fullName) return null;
+  if (isLoading || !account) return null;
 
   return (
-    <div className="flex items-center gap-1.5 text-xs text-slate-400">
-      <User className="w-3 h-3" />
+    <div className="flex items-center gap-1.5 text-xs text-gray-500">
+      <ProfilePhoto src={account.photo_url} alt={account.username} size="xs" />
       <span>
         Connecte en tant que{" "}
-        <span className="font-semibold text-slate-500">{fullName}</span>
+        <span className="font-semibold text-green-400/70">{account.username}</span>
       </span>
     </div>
   );

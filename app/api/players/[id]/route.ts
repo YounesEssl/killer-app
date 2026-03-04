@@ -25,12 +25,28 @@ export async function GET(
 
     let target = null;
     if (player.target_id) {
-      const { data } = await supabase
+      const { data: targetPlayer } = await supabase
         .from("players")
-        .select("id, name, avatar_emoji")
+        .select("id, name, account_id")
         .eq("id", player.target_id)
         .single();
-      target = data;
+
+      if (targetPlayer) {
+        let photoUrl: string | null = null;
+        if (targetPlayer.account_id) {
+          const { data: acc } = await supabase
+            .from("accounts")
+            .select("photo_url")
+            .eq("id", targetPlayer.account_id)
+            .single();
+          photoUrl = acc?.photo_url ?? null;
+        }
+        target = {
+          id: targetPlayer.id,
+          name: targetPlayer.name,
+          photo_url: photoUrl,
+        };
+      }
     }
 
     const mission = player.mission_id
