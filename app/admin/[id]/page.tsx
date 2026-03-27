@@ -2,7 +2,7 @@
 
 import { useState, use } from "react";
 import { motion } from "framer-motion";
-import type { Game, Player, KillEvent } from "@/lib/supabase/types";
+import type { Game, Player, KillEvent } from "@/lib/firebase/types";
 import AdminPanel from "@/components/admin/AdminPanel";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -55,44 +55,48 @@ export default function AdminPage({ params }: { params: Promise<{ id: string }> 
 
   if (!authenticated) {
     return (
-      <div className="min-h-dvh flex items-center justify-center px-6 bg-white">
+      <div className="min-h-dvh flex flex-col items-center justify-center px-6 bg-[#0a0f0d]">
+        <div className="fixed inset-0 bg-grid pointer-events-none" />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ease: [0.22, 1, 0.36, 1], duration: 0.5 }}
-          className="w-full max-w-sm space-y-6"
+          className="w-full max-w-sm space-y-6 text-center relative z-10"
         >
-          <div className="text-center space-y-2">
-            <div className="w-16 h-16 rounded-full bg-brand-100 flex items-center justify-center mx-auto">
-              <Lock className="w-8 h-8 text-brand-600" />
+          <div className="space-y-3">
+            <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto">
+              <Lock className="w-8 h-8 text-green-400" />
             </div>
-            <h1 className="text-2xl font-bold font-[family-name:var(--font-display)] text-slate-900">
+            <h1 className="text-2xl font-bold font-[family-name:var(--font-display)] text-white">
               Admin Panel
             </h1>
-            <p className="text-slate-500 text-sm">
+            <p className="text-gray-500 text-sm">
               Entre le mot de passe admin
             </p>
           </div>
 
-          <Input
-            type="password"
-            placeholder="Mot de passe admin"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            error={error}
-            onKeyDown={(e) => e.key === "Enter" && handleAuth()}
-          />
+          <div className="space-y-4">
+            <Input
+              label="Mot de passe"
+              type="password"
+              placeholder="Mot de passe admin"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              error={error}
+              onKeyDown={(e) => e.key === "Enter" && handleAuth()}
+            />
 
-          <Button
-            variant="primary"
-            size="lg"
-            fullWidth
-            loading={isChecking}
-            disabled={!password}
-            onClick={handleAuth}
-          >
-            Acceder
-          </Button>
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={isChecking}
+              disabled={!password}
+              onClick={handleAuth}
+            >
+              Acceder
+            </Button>
+          </div>
         </motion.div>
       </div>
     );
@@ -101,8 +105,11 @@ export default function AdminPage({ params }: { params: Promise<{ id: string }> 
   if (!game) return null;
 
   return (
-    <div className="min-h-dvh px-5 py-6 max-w-2xl mx-auto bg-white">
-      <AdminPanel game={game} players={players} events={events} />
+    <div className="min-h-dvh px-5 py-6 max-w-2xl mx-auto bg-[#0a0f0d] relative">
+      <div className="fixed inset-0 bg-grid pointer-events-none" />
+      <div className="relative z-10">
+        <AdminPanel game={game} players={players} events={events} />
+      </div>
     </div>
   );
 }

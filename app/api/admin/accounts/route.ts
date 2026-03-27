@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { adminDb } from "@/lib/firebase/server";
 import { normalizeUsername, generateSecretCode } from "@/lib/utils";
+import type { Account } from "@/lib/firebase/types";
 
 function checkAdmin(request: Request) {
   const secret = request.headers.get("x-admin-secret");
@@ -15,17 +16,22 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Non autorise" }, { status: 401 });
   }
 
-  const supabase = createServerClient();
-  const { data, error } = await supabase
-    .from("accounts")
-    .select("*")
-    .order("created_at", { ascending: false });
+  try {
+    const snapshot = await adminDb
+      .collection("accounts")
+      .orderBy("created_at", "desc")
+      .get();
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const accounts = snapshot.docs.map(
+      (doc) => ({ id: doc.id, ...doc.data() }) as Account
+    );
+
+    return NextResponse.json({ accounts });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  return NextResponse.json({ accounts: data });
 }
 
 export async function POST(request: Request) {
@@ -45,37 +51,35 @@ export async function POST(request: Request) {
 
     const normalized = normalizeUsername(username);
     const code = generateSecretCode();
-    const supabase = createServerClient();
 
     // Check uniqueness
-    const { data: existing } = await supabase
-      .from("accounts")
-      .select("id")
-      .eq("username_normalized", normalized)
-      .single();
+    const existingSnapshot = await adminDb
+      .collection("accounts")
+      .where("username_normalized", "==", normalized)
+      .get();
 
-    if (existing) {
+    if (!existingSnapshot.empty) {
       return NextResponse.json(
         { error: "Ce nom existe deja" },
         { status: 400 }
       );
     }
 
-    const { data, error } = await supabase
-      .from("accounts")
-      .insert({
-        username: username.trim(),
-        username_normalized: normalized,
-        secret_code: code,
-      })
-      .select()
-      .single();
+    const now = new Date().toISOString();
+    const ref = adminDb.collection("accounts").doc();
+    const accountData = {
+      username: username.trim(),
+      username_normalized: normalized,
+      secret_code: code,
+      photo_url: null,
+      created_at: now,
+      updated_at: now,
+    };
+    await ref.set(accountData);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    const account: Account = { id: ref.id, ...accountData };
 
-    return NextResponse.json({ account: data });
+    return NextResponse.json({ account });
   } catch {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }

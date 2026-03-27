@@ -1,0 +1,52 @@
+KILLER - Codes de connexion
+============================
+
+Connectez-vous sur l'app avec votre prenom et votre code secret.
+
+Adrien M              8077
+Adrien P              4553
+Agathe                2269
+Alex                  6660
+Alexia                9246
+Alizée                6000
+Anthime               9206
+Arthur                4383
+Aylan                 1731
+Benoit                7344
+Chloé M               5134
+Chloé P               2985
+Constance             6820
+Elena                 3871
+Emma                  9431
+Flavian               9109
+Gabriel               1138
+Guillaume C           5901
+Guillaume H           1969
+Inès                  2019
+Jade                  1837
+Jason                 7417
+Justine               3171
+Kossai                9962
+Lisa                  7996
+Lunna                 6309
+Manu                  6529
+Marie                 2380
+Marion                3229
+Maxence D             6541
+Maxime B              3880
+Maxime E              7959
+Milia                 6114
+Paul                  5520
+Raph T                8319
+Raphaël (Cobra)       6640
+Rémi                  3370
+Romain                1615
+Ruben                 2779
+Sacha                 6529
+Samir                 3605
+Samantha              4627
+Tess                  2717
+Thierry               4320
+Thomas                9847
+Yanis                 6670
+Zoé                   6784

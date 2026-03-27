@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { adminDb } from "@/lib/firebase/server";
 import { normalizeUsername } from "@/lib/utils";
+import type { Account } from "@/lib/firebase/types";
 
 export async function POST(request: Request) {
   try {
@@ -14,15 +15,17 @@ export async function POST(request: Request) {
     }
 
     const normalized = normalizeUsername(username);
-    const supabase = createServerClient();
 
-    const { data: account, error } = await supabase
-      .from("accounts")
-      .select("*")
-      .eq("username_normalized", normalized)
-      .single();
+    const snap = await adminDb
+      .collection("accounts")
+      .where("username_normalized", "==", normalized)
+      .limit(1)
+      .get();
+    const account = snap.empty
+      ? null
+      : ({ id: snap.docs[0].id, ...snap.docs[0].data() } as Account);
 
-    if (error || !account) {
+    if (!account) {
       return NextResponse.json(
         { error: "Compte introuvable" },
         { status: 401 }

@@ -5,9 +5,15 @@ import { useRouter } from "next/navigation";
 import { useAccount } from "@/hooks/useAccount";
 import { useGame } from "@/hooks/useGame";
 import { usePlayer } from "@/hooks/usePlayer";
-import { supabase } from "@/lib/supabase/client";
+import { db } from "@/lib/firebase/client";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+} from "firebase/firestore";
 import { getMissionById } from "@/lib/missions";
-import type { Player } from "@/lib/supabase/types";
+import type { Player } from "@/lib/firebase/types";
 import GameLobby from "@/components/game/GameLobby";
 import PlayerDashboard from "@/components/game/PlayerDashboard";
 import DeathScreen from "@/components/game/DeathScreen";
@@ -37,27 +43,19 @@ function GamePageContent({ params }: { params: Promise<{ id: string }> }) {
   const [playersLoading, setPlayersLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchPlayers() {
-      const { data } = await supabase
-        .from("players")
-        .select("*")
-        .eq("game_id", gameId)
-        .order("joined_at", { ascending: true });
-      if (data) setPlayers(data);
+    const q = query(
+      collection(db, "players"),
+      where("game_id", "==", gameId)
+    );
+
+    const unsubscribe = onSnapshot(q, (snap) => {
+      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Player);
+      list.sort((a, b) => (a.joined_at ?? "").localeCompare(b.joined_at ?? ""));
+      setPlayers(list);
       setPlayersLoading(false);
-    }
-    fetchPlayers();
+    });
 
-    const channel = supabase
-      .channel(`game-players-${gameId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "players", filter: `game_id=eq.${gameId}` },
-        () => { fetchPlayers(); }
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
+    return () => unsubscribe();
   }, [gameId]);
 
   const isLoading = gameLoading || playerLoading || playersLoading;
@@ -143,7 +141,8 @@ function GamePageContent({ params }: { params: Promise<{ id: string }> }) {
 
   // Active & alive
   const alivePlayers = players.filter((p) => p.is_alive);
-  const mission = player.mission_id ? getMissionById(player.mission_id) ?? null : null;
+  const missionFromId = player.mission_id ? getMissionById(player.mission_id) ?? null : null;
+  const mission = missionFromId || (player.mission_description ? { id: 0, description: player.mission_description, category: "action" as const, difficulty: "medium" as const } : null);
 
   return (
     <div className="min-h-dvh px-5 py-6 max-w-lg mx-auto bg-[#0a0f0d] relative">

@@ -2,8 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabase } from "@/lib/supabase/client";
-import type { Game, Player } from "@/lib/supabase/types";
+import { db } from "@/lib/firebase/client";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+} from "firebase/firestore";
+import { batchGetByIds } from "@/lib/firebase/helpers";
+import type { Game, Player, Account } from "@/lib/firebase/types";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -29,60 +36,33 @@ export default function GameLobby({ game, players: initialPlayers }: GameLobbyPr
   const [showQR, setShowQR] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Fetch players with their photos
-  const fetchPlayersWithPhotos = async () => {
-    const { data } = await supabase
-      .from("players")
-      .select("*")
-      .eq("game_id", game.id)
-      .order("joined_at", { ascending: true });
+  // Fetch photos for a list of players
+  const enrichWithPhotos = async (playerList: Player[]): Promise<PlayerWithPhoto[]> => {
+    const accountIds = playerList.filter((p) => p.account_id).map((p) => p.account_id!);
+    if (accountIds.length === 0) return playerList.map((p) => ({ ...p, photo_url: null }));
 
-    if (!data) return;
-
-    // Fetch photos for all players with account_id
-    const accountIds = data.filter((p) => p.account_id).map((p) => p.account_id!);
-    let photoMap: Record<string, string | null> = {};
-
-    if (accountIds.length > 0) {
-      const { data: accounts } = await supabase
-        .from("accounts")
-        .select("id, photo_url")
-        .in("id", accountIds);
-
-      if (accounts) {
-        photoMap = Object.fromEntries(accounts.map((a) => [a.id, a.photo_url]));
-      }
-    }
-
-    setPlayers(data.map((p) => ({
+    const accounts = await batchGetByIds<Account>(db, "accounts", accountIds);
+    return playerList.map((p) => ({
       ...p,
-      photo_url: p.account_id ? photoMap[p.account_id] ?? null : null,
-    })));
+      photo_url: p.account_id ? accounts.get(p.account_id)?.photo_url ?? null : null,
+    }));
   };
 
   useEffect(() => {
-    fetchPlayersWithPhotos();
+    const q = query(
+      collection(db, "players"),
+      where("game_id", "==", game.id)
+    );
 
-    const channel = supabase
-      .channel(`lobby-${game.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "players",
-          filter: `game_id=eq.${game.id}`,
-        },
-        () => { fetchPlayersWithPhotos(); }
-      )
-      .subscribe();
+    const unsubscribe = onSnapshot(q, async (snap) => {
+      const playerList = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() }) as Player)
+        .sort((a, b) => (a.joined_at ?? "").localeCompare(b.joined_at ?? ""));
+      const withPhotos = await enrichWithPhotos(playerList);
+      setPlayers(withPhotos);
+    });
 
-    const interval = setInterval(fetchPlayersWithPhotos, 5000);
-
-    return () => {
-      clearInterval(interval);
-      supabase.removeChannel(channel);
-    };
+    return () => unsubscribe();
   }, [game.id]);
 
   const handleCopy = async () => {

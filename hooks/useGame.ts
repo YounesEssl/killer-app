@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/lib/supabase/client";
-import type { Game } from "@/lib/supabase/types";
+import { db } from "@/lib/firebase/client";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import type { Game } from "@/lib/firebase/types";
 
 export function useGame(gameId: string) {
   const [game, setGame] = useState<Game | null>(null);
@@ -10,51 +11,37 @@ export function useGame(gameId: string) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchGame = useCallback(async () => {
-    const { data, error: fetchError } = await supabase
-      .from("games")
-      .select("*")
-      .eq("id", gameId)
-      .single();
-
-    if (fetchError) {
-      setError(fetchError.message);
-    } else {
-      setGame(data);
+    try {
+      const snap = await getDoc(doc(db, "games", gameId));
+      if (snap.exists()) {
+        setGame({ id: snap.id, ...snap.data() } as Game);
+      } else {
+        setError("Partie introuvable");
+      }
+    } catch (err) {
+      setError((err as Error).message);
     }
     setIsLoading(false);
   }, [gameId]);
 
   useEffect(() => {
-    fetchGame();
-
-    const channel = supabase
-      .channel(`game-${gameId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "games",
-          filter: `id=eq.${gameId}`,
-        },
-        (payload) => {
-          setGame(payload.new as Game);
+    const unsubscribe = onSnapshot(
+      doc(db, "games", gameId),
+      (snap) => {
+        if (snap.exists()) {
+          setGame({ id: snap.id, ...snap.data() } as Game);
         }
-      )
-      .subscribe((status) => {
-        if (status === "CHANNEL_ERROR") {
-          console.error("[useGame] Realtime subscription error, falling back to polling");
-        }
-      });
+        setIsLoading(false);
+      },
+      (err) => {
+        console.error("[useGame] Realtime error:", err);
+        setError(err.message);
+        setIsLoading(false);
+      }
+    );
 
-    // Fallback polling every 5s in case realtime doesn't work
-    const interval = setInterval(fetchGame, 5000);
-
-    return () => {
-      clearInterval(interval);
-      supabase.removeChannel(channel);
-    };
-  }, [gameId, fetchGame]);
+    return () => unsubscribe();
+  }, [gameId]);
 
   return { game, isLoading, error, refetch: fetchGame };
 }

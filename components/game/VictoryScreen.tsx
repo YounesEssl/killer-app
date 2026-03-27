@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import type { Player, Game } from "@/lib/supabase/types";
+import type { Player, Game, Account } from "@/lib/firebase/types";
 import { formatDuration } from "@/lib/utils";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
 import { Share2, Trophy, Shield, Users, Skull, Clock, RotateCcw, Crown, Medal } from "lucide-react";
 import ProfilePhoto from "@/components/ui/ProfilePhoto";
-import { supabase } from "@/lib/supabase/client";
+import { db } from "@/lib/firebase/client";
+import { batchGetByIds } from "@/lib/firebase/helpers";
 
 interface VictoryScreenProps {
   game: Game;
@@ -37,15 +38,13 @@ export default function VictoryScreen({
     const accountIds = players.filter((p) => p.account_id).map((p) => p.account_id!);
     if (accountIds.length === 0) return;
 
-    supabase
-      .from("accounts")
-      .select("id, photo_url")
-      .in("id", accountIds)
-      .then(({ data }) => {
-        if (data) {
-          setPhotoMap(Object.fromEntries(data.map((a) => [a.id, a.photo_url])));
-        }
+    batchGetByIds<Account>(db, "accounts", accountIds).then((accounts) => {
+      const map: Record<string, string | null> = {};
+      accounts.forEach((acc, id) => {
+        map[id] = acc.photo_url ?? null;
       });
+      setPhotoMap(map);
+    });
   }, [players]);
 
   const getPhotoUrl = (player: Player | null) => {

@@ -1,10 +1,11 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase/client";
+import { db } from "@/lib/firebase/client";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { useAccount } from "@/hooks/useAccount";
 import { useGame } from "@/hooks/useGame";
-import type { Player } from "@/lib/supabase/types";
+import type { Player } from "@/lib/firebase/types";
 import Leaderboard from "@/components/game/Leaderboard";
 import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
@@ -38,11 +39,8 @@ function LeaderboardPageContent({ params }: { params: Promise<{ id: string }> })
 
   useEffect(() => {
     async function fetchPlayers() {
-      const { data } = await supabase
-        .from("players")
-        .select("*")
-        .eq("game_id", gameId);
-      if (data) setPlayers(data);
+      const snap = await getDocs(query(collection(db, "players"), where("game_id", "==", gameId)));
+      setPlayers(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Player));
       setIsLoading(false);
     }
     fetchPlayers();

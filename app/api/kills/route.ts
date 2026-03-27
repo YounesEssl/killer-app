@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { adminDb } from "@/lib/firebase/server";
 import { getMissionById } from "@/lib/missions";
+import type { Player, Account } from "@/lib/firebase/types";
 
 // Simple in-memory rate limiter
 const attempts = new Map<
@@ -56,16 +57,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createServerClient();
-
     // Get killer
-    const { data: killer, error: killerError } = await supabase
-      .from("players")
-      .select("*")
-      .eq("id", playerId)
-      .single();
+    const killerDoc = await adminDb.collection("players").doc(playerId).get();
+    const killer = killerDoc.exists
+      ? ({ id: killerDoc.id, ...killerDoc.data() } as Player)
+      : null;
 
-    if (killerError || !killer) {
+    if (!killer) {
       return NextResponse.json(
         { error: "Joueur introuvable" },
         { status: 404 }
@@ -87,13 +85,15 @@ export async function POST(request: Request) {
     }
 
     // Get target
-    const { data: target, error: targetError } = await supabase
-      .from("players")
-      .select("*")
-      .eq("id", killer.target_id)
-      .single();
+    const targetDoc = await adminDb
+      .collection("players")
+      .doc(killer.target_id)
+      .get();
+    const target = targetDoc.exists
+      ? ({ id: targetDoc.id, ...targetDoc.data() } as Player)
+      : null;
 
-    if (targetError || !target) {
+    if (!target) {
       return NextResponse.json(
         { error: "Cible introuvable" },
         { status: 404 }
@@ -122,42 +122,40 @@ export async function POST(request: Request) {
     const mission = killer.mission_id
       ? getMissionById(killer.mission_id)
       : null;
+    const missionDesc = mission?.description || killer.mission_description || "Mission inconnue";
 
     // Kill the target
-    await supabase
-      .from("players")
-      .update({
-        is_alive: false,
-        died_at: new Date().toISOString(),
-      })
-      .eq("id", target.id);
+    await adminDb.collection("players").doc(target.id).update({
+      is_alive: false,
+      died_at: new Date().toISOString(),
+    });
 
     // Update killer: new target, new mission, increment kill count
-    await supabase
-      .from("players")
-      .update({
-        target_id: target.target_id,
-        mission_id: target.mission_id,
-        kill_count: killer.kill_count + 1,
-      })
-      .eq("id", killer.id);
+    await adminDb.collection("players").doc(killer.id).update({
+      target_id: target.target_id,
+      mission_id: target.mission_id,
+      mission_description: target.mission_description || null,
+      kill_count: killer.kill_count + 1,
+    });
 
     // Count survivors
-    const { count } = await supabase
-      .from("players")
-      .select("*", { count: "exact", head: true })
-      .eq("game_id", killer.game_id)
-      .eq("is_alive", true);
-
-    const survivorsCount = count || 0;
+    const countSnap = await adminDb
+      .collection("players")
+      .where("game_id", "==", killer.game_id)
+      .where("is_alive", "==", true)
+      .count()
+      .get();
+    const survivorsCount = countSnap.data().count;
 
     // Create kill event
-    await supabase.from("kill_events").insert({
+    const killEventRef = adminDb.collection("kill_events").doc();
+    await killEventRef.set({
       game_id: killer.game_id,
       killer_id: killer.id,
       victim_id: target.id,
-      mission_description: mission?.description || "Mission inconnue",
+      mission_description: missionDesc,
       survivors_count: survivorsCount,
+      killed_at: new Date().toISOString(),
     });
 
     // Check if game is over
@@ -166,41 +164,46 @@ export async function POST(request: Request) {
       isGameOver = true;
 
       // Winner = player with the most kills
-      const { data: topKiller } = await supabase
-        .from("players")
-        .select("id")
-        .eq("game_id", killer.game_id)
-        .order("kill_count", { ascending: false })
-        .limit(1)
-        .single();
+      const allPlayersSnap = await adminDb
+        .collection("players")
+        .where("game_id", "==", killer.game_id)
+        .get();
+      const sorted = allPlayersSnap.docs
+        .map((d) => ({ id: d.id, ...(d.data() as { kill_count: number }) }))
+        .sort((a, b) => b.kill_count - a.kill_count);
+      const topKiller = sorted.length > 0 ? sorted[0] : null;
 
-      await supabase
-        .from("games")
+      await adminDb
+        .collection("games")
+        .doc(killer.game_id)
         .update({
           status: "finished" as const,
           winner_id: topKiller?.id ?? killer.id,
           finished_at: new Date().toISOString(),
-        })
-        .eq("id", killer.game_id);
+        });
     }
 
     // Get new target info with photo
     let newTarget = null;
     if (target.target_id && !isGameOver) {
-      const { data: newTargetPlayer } = await supabase
-        .from("players")
-        .select("id, name, account_id")
-        .eq("id", target.target_id)
-        .single();
+      const newTargetDoc = await adminDb
+        .collection("players")
+        .doc(target.target_id)
+        .get();
+      const newTargetPlayer = newTargetDoc.exists
+        ? ({ id: newTargetDoc.id, ...newTargetDoc.data() } as Player)
+        : null;
 
       if (newTargetPlayer) {
         let photoUrl: string | null = null;
         if (newTargetPlayer.account_id) {
-          const { data: acc } = await supabase
-            .from("accounts")
-            .select("photo_url")
-            .eq("id", newTargetPlayer.account_id)
-            .single();
+          const accDoc = await adminDb
+            .collection("accounts")
+            .doc(newTargetPlayer.account_id)
+            .get();
+          const acc = accDoc.exists
+            ? ({ id: accDoc.id, ...accDoc.data() } as Account)
+            : null;
           photoUrl = acc?.photo_url ?? null;
         }
         newTarget = {

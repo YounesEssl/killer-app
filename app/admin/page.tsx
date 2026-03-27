@@ -8,7 +8,7 @@ import Card from "@/components/ui/Card";
 import BottomSheet from "@/components/ui/BottomSheet";
 import ProfilePhoto from "@/components/ui/ProfilePhoto";
 import { Lock, Plus, RefreshCw, Trash2, Edit3, Users, Copy } from "lucide-react";
-import type { Account } from "@/lib/supabase/types";
+import type { Account } from "@/lib/firebase/types";
 
 export default function AdminPage() {
   const [adminSecret, setAdminSecret] = useState("");

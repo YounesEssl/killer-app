@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { Player } from "@/lib/supabase/types";
+import type { Player } from "@/lib/firebase/types";
 import { formatDuration } from "@/lib/utils";
 import Button from "@/components/ui/Button";
 import Link from "next/link";

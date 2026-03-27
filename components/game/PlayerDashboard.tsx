@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import type { Player } from "@/lib/supabase/types";
+import type { Player } from "@/lib/firebase/types";
 import type { Mission } from "@/lib/missions";
 import SurvivorCount from "./SurvivorCount";
 import MissionCard from "./MissionCard";

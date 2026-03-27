@@ -1,8 +1,17 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/lib/supabase/client";
-import type { Account } from "@/lib/supabase/types";
+import { db } from "@/lib/firebase/client";
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  limit,
+  getDocs,
+} from "firebase/firestore";
+import type { Account } from "@/lib/firebase/types";
 
 const STORAGE_KEY = "killer_account_id";
 
@@ -17,26 +26,34 @@ export function useAccount() {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchAccount = useCallback(async (accountId: string) => {
-    const { data } = await supabase
-      .from("accounts")
-      .select("*")
-      .eq("id", accountId)
-      .single();
-    return data as Account | null;
+    const snap = await getDoc(doc(db, "accounts", accountId));
+    if (!snap.exists()) return null;
+    return { id: snap.id, ...snap.data() } as Account;
   }, []);
 
   const fetchActiveSession = useCallback(async (accountId: string) => {
-    const { data: player } = await supabase
-      .from("players")
-      .select("id, game_id, games!inner(status)")
-      .eq("account_id", accountId)
-      .in("games.status", ["lobby", "active"])
-      .order("joined_at", { ascending: false })
-      .limit(1)
-      .single();
+    try {
+      // Find player records for this account (no orderBy to avoid composite index requirement)
+      const playersQuery = query(
+        collection(db, "players"),
+        where("account_id", "==", accountId),
+        limit(10)
+      );
+      const playersSnap = await getDocs(playersQuery);
 
-    if (player) {
-      return { playerId: player.id, gameId: player.game_id };
+      // Check each player's game status to find an active one
+      for (const playerDoc of playersSnap.docs) {
+        const player = playerDoc.data();
+        const gameSnap = await getDoc(doc(db, "games", player.game_id));
+        if (gameSnap.exists()) {
+          const gameStatus = gameSnap.data().status;
+          if (gameStatus === "lobby" || gameStatus === "active") {
+            return { playerId: playerDoc.id, gameId: player.game_id };
+          }
+        }
+      }
+    } catch (err) {
+      console.error("[useAccount] fetchActiveSession error:", err);
     }
     return null;
   }, []);

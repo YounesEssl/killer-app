@@ -1,4 +1,4 @@
-import type { Player } from "./supabase/types";
+import type { Player } from "./firebase/types";
 import { shuffleArray } from "./utils";
 import { MISSIONS } from "./missions";
 

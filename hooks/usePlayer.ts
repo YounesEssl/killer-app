@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/lib/supabase/client";
-import type { Player } from "@/lib/supabase/types";
+import { db } from "@/lib/firebase/client";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import type { Player } from "@/lib/firebase/types";
 
 export function usePlayer(playerId: string | null) {
   const [player, setPlayer] = useState<Player | null>(null);
@@ -15,13 +16,21 @@ export function usePlayer(playerId: string | null) {
       setTargetPhotoUrl(null);
       return;
     }
-    const { data } = await supabase
-      .from("accounts")
-      .select("photo_url")
-      .eq("id", accountId)
-      .single();
-    setTargetPhotoUrl(data?.photo_url ?? null);
+    const snap = await getDoc(doc(db, "accounts", accountId));
+    setTargetPhotoUrl(snap.exists() ? (snap.data().photo_url ?? null) : null);
   }, []);
+
+  const fetchTarget = useCallback(
+    async (targetId: string) => {
+      const snap = await getDoc(doc(db, "players", targetId));
+      if (snap.exists()) {
+        const targetData = { id: snap.id, ...snap.data() } as Player;
+        setTarget(targetData);
+        await fetchPhotoUrl(targetData.account_id);
+      }
+    },
+    [fetchPhotoUrl]
+  );
 
   const fetchPlayer = useCallback(async () => {
     if (!playerId) {
@@ -29,79 +38,44 @@ export function usePlayer(playerId: string | null) {
       return;
     }
 
-    const { data } = await supabase
-      .from("players")
-      .select("*")
-      .eq("id", playerId)
-      .single();
-
-    if (data) {
+    const snap = await getDoc(doc(db, "players", playerId));
+    if (snap.exists()) {
+      const data = { id: snap.id, ...snap.data() } as Player;
       setPlayer(data);
-
       if (data.target_id) {
-        const { data: targetData } = await supabase
-          .from("players")
-          .select("*")
-          .eq("id", data.target_id)
-          .single();
-
-        if (targetData) {
-          setTarget(targetData);
-          await fetchPhotoUrl(targetData.account_id);
-        }
+        await fetchTarget(data.target_id);
       }
     }
     setIsLoading(false);
-  }, [playerId, fetchPhotoUrl]);
+  }, [playerId, fetchTarget]);
 
   useEffect(() => {
-    fetchPlayer();
+    if (!playerId) {
+      setIsLoading(false);
+      return;
+    }
 
-    if (!playerId) return;
-
-    const channel = supabase
-      .channel(`player-${playerId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "players",
-          filter: `id=eq.${playerId}`,
-        },
-        (payload) => {
-          const updated = payload.new as Player;
+    const unsubscribe = onSnapshot(
+      doc(db, "players", playerId),
+      (snap) => {
+        if (snap.exists()) {
+          const updated = { id: snap.id, ...snap.data() } as Player;
           setPlayer(updated);
 
           if (updated.target_id) {
-            supabase
-              .from("players")
-              .select("*")
-              .eq("id", updated.target_id)
-              .single()
-              .then(({ data }) => {
-                if (data) {
-                  setTarget(data);
-                  fetchPhotoUrl(data.account_id);
-                }
-              });
+            fetchTarget(updated.target_id);
           }
         }
-      )
-      .subscribe((status) => {
-        if (status === "CHANNEL_ERROR") {
-          console.error("[usePlayer] Realtime subscription error, falling back to polling");
-        }
-      });
+        setIsLoading(false);
+      },
+      (err) => {
+        console.error("[usePlayer] Realtime error:", err);
+        setIsLoading(false);
+      }
+    );
 
-    // Fallback polling every 5s
-    const interval = setInterval(fetchPlayer, 5000);
-
-    return () => {
-      clearInterval(interval);
-      supabase.removeChannel(channel);
-    };
-  }, [playerId, fetchPlayer]);
+    return () => unsubscribe();
+  }, [playerId, fetchTarget]);
 
   return { player, target, targetPhotoUrl, isLoading, refetch: fetchPlayer };
 }

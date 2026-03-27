@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { adminDb } from "@/lib/firebase/server";
+import type { KillEvent } from "@/lib/firebase/types";
 
 export async function GET(
   request: Request,
@@ -7,15 +8,17 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const supabase = createServerClient();
 
-    const { data: events } = await supabase
-      .from("kill_events")
-      .select("*")
-      .eq("game_id", id)
-      .order("killed_at", { ascending: false });
+    const snap = await adminDb
+      .collection("kill_events")
+      .where("game_id", "==", id)
+      .get();
 
-    return NextResponse.json(events || []);
+    const events = snap.docs
+      .map((doc) => ({ id: doc.id, ...doc.data() }) as KillEvent)
+      .sort((a, b) => b.killed_at.localeCompare(a.killed_at));
+
+    return NextResponse.json(events);
   } catch {
     return NextResponse.json(
       { error: "Erreur serveur" },

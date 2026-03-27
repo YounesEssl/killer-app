@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { adminDb } from "@/lib/firebase/server";
 import { generateKillCode } from "@/lib/utils";
+import type { Account, Game } from "@/lib/firebase/types";
 
 export async function POST(request: Request) {
   try {
@@ -20,21 +21,17 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createServerClient();
-
     // Get account
-    const { data: account, error: accountError } = await supabase
-      .from("accounts")
-      .select("*")
-      .eq("id", accountId)
-      .single();
+    const accountDoc = await adminDb.collection("accounts").doc(accountId).get();
 
-    if (accountError || !account) {
+    if (!accountDoc.exists) {
       return NextResponse.json(
         { error: "Compte introuvable" },
         { status: 401 }
       );
     }
+
+    const account = { id: accountDoc.id, ...accountDoc.data() } as Account;
 
     if (!account.photo_url) {
       return NextResponse.json(
@@ -45,18 +42,20 @@ export async function POST(request: Request) {
 
     const playerName = account.username;
 
-    const { data: game, error: gameError } = await supabase
-      .from("games")
-      .select("*")
-      .eq("join_code", joinCode.toUpperCase())
-      .single();
+    const gameSnap = await adminDb
+      .collection("games")
+      .where("join_code", "==", joinCode.toUpperCase())
+      .limit(1)
+      .get();
 
-    if (gameError || !game) {
+    if (gameSnap.empty) {
       return NextResponse.json(
         { error: "Partie introuvable. Verifie le code." },
         { status: 404 }
       );
     }
+
+    const game = { id: gameSnap.docs[0].id, ...gameSnap.docs[0].data() } as Game;
 
     if (game.status !== "lobby") {
       return NextResponse.json(
@@ -66,14 +65,14 @@ export async function POST(request: Request) {
     }
 
     // Check account uniqueness in this game
-    const { data: existingPlayer } = await supabase
-      .from("players")
-      .select("id")
-      .eq("game_id", game.id)
-      .eq("account_id", accountId)
-      .single();
+    const existingPlayerSnap = await adminDb
+      .collection("players")
+      .where("game_id", "==", game.id)
+      .where("account_id", "==", accountId)
+      .limit(1)
+      .get();
 
-    if (existingPlayer) {
+    if (!existingPlayerSnap.empty) {
       return NextResponse.json(
         { error: "Tu es deja dans cette partie" },
         { status: 400 }
@@ -81,35 +80,33 @@ export async function POST(request: Request) {
     }
 
     // Generate unique kill code
-    const { data: existingCodes } = await supabase
-      .from("players")
-      .select("kill_code")
-      .eq("game_id", game.id);
+    const existingCodesSnap = await adminDb
+      .collection("players")
+      .where("game_id", "==", game.id)
+      .get();
 
-    const usedCodes = (existingCodes || []).map((p) => p.kill_code);
+    const usedCodes = existingCodesSnap.docs.map(
+      (d) => d.data().kill_code as string
+    );
     const killCode = generateKillCode(usedCodes);
 
-    const { data: player, error: playerError } = await supabase
-      .from("players")
-      .insert({
-        game_id: game.id,
-        account_id: accountId,
-        name: playerName,
-        kill_code: killCode,
-        target_id: null,
-        mission_id: null,
-        is_alive: true,
-        kill_count: 0,
-      })
-      .select()
-      .single();
+    const now = new Date().toISOString();
+    const ref = adminDb.collection("players").doc();
+    const playerData = {
+      game_id: game.id,
+      account_id: accountId,
+      name: playerName,
+      kill_code: killCode,
+      target_id: null,
+      mission_id: null,
+      is_alive: true,
+      kill_count: 0,
+      joined_at: now,
+      died_at: null,
+    };
+    await ref.set(playerData);
 
-    if (playerError) {
-      return NextResponse.json(
-        { error: playerError.message },
-        { status: 500 }
-      );
-    }
+    const player = { id: ref.id, ...playerData };
 
     return NextResponse.json({ player, game });
   } catch {

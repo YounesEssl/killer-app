@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { adminDb } from "@/lib/firebase/server";
+import type { Player } from "@/lib/firebase/types";
 
 export async function GET(
   request: Request,
@@ -7,16 +8,20 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const supabase = createServerClient();
 
-    const { data: players } = await supabase
-      .from("players")
-      .select("*")
-      .eq("game_id", id)
-      .order("kill_count", { ascending: false })
-      .order("is_alive", { ascending: false });
+    const snap = await adminDb
+      .collection("players")
+      .where("game_id", "==", id)
+      .get();
 
-    return NextResponse.json(players || []);
+    const players = snap.docs
+      .map((doc) => ({ id: doc.id, ...doc.data() }) as Player)
+      .sort((a, b) => {
+        if (b.kill_count !== a.kill_count) return b.kill_count - a.kill_count;
+        return (b.is_alive ? 1 : 0) - (a.is_alive ? 1 : 0);
+      });
+
+    return NextResponse.json(players);
   } catch {
     return NextResponse.json(
       { error: "Erreur serveur" },

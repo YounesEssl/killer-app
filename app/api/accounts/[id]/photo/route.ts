@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { adminDb, adminStorage } from "@/lib/firebase/server";
 
 export async function POST(
   request: Request,
@@ -16,16 +16,10 @@ export async function POST(
       );
     }
 
-    const supabase = createServerClient();
-
     // Verify account exists
-    const { data: account, error: accountError } = await supabase
-      .from("accounts")
-      .select("id")
-      .eq("id", id)
-      .single();
+    const accountDoc = await adminDb.collection("accounts").doc(id).get();
 
-    if (accountError || !account) {
+    if (!accountDoc.exists) {
       return NextResponse.json(
         { error: "Compte introuvable" },
         { status: 404 }
@@ -36,36 +30,32 @@ export async function POST(
     const base64Data = photo.replace(/^data:image\/\w+;base64,/, "");
     const buffer = Buffer.from(base64Data, "base64");
 
-    // Upload to Supabase Storage
+    // Upload to Firebase Storage
     const filePath = `${id}.jpg`;
-    const { error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(filePath, buffer, {
-        contentType: "image/jpeg",
-        upsert: true,
-      });
-
-    if (uploadError) {
+    try {
+      await adminStorage
+        .bucket()
+        .file(`avatars/${filePath}`)
+        .save(buffer, { contentType: "image/jpeg", public: true });
+    } catch (uploadErr: unknown) {
+      const message =
+        uploadErr instanceof Error ? uploadErr.message : "Unknown error";
       return NextResponse.json(
-        { error: "Erreur lors de l'upload: " + uploadError.message },
+        { error: "Erreur lors de l'upload: " + message },
         { status: 500 }
       );
     }
 
     // Get public URL
-    const { data: urlData } = supabase.storage
-      .from("avatars")
-      .getPublicUrl(filePath);
-
-    const photoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+    const photoUrl = `https://storage.googleapis.com/${adminStorage.bucket().name}/avatars/${filePath}?t=${Date.now()}`;
 
     // Update account
-    const { error: updateError } = await supabase
-      .from("accounts")
-      .update({ photo_url: photoUrl, updated_at: new Date().toISOString() })
-      .eq("id", id);
-
-    if (updateError) {
+    try {
+      await adminDb
+        .collection("accounts")
+        .doc(id)
+        .update({ photo_url: photoUrl, updated_at: new Date().toISOString() });
+    } catch {
       return NextResponse.json(
         { error: "Erreur lors de la mise a jour" },
         { status: 500 }

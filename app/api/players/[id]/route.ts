@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { adminDb } from "@/lib/firebase/server";
 import { getMissionById } from "@/lib/missions";
+import type { Player, Account } from "@/lib/firebase/types";
 
 export async function GET(
   request: Request,
@@ -8,15 +9,13 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const supabase = createServerClient();
 
-    const { data: player, error } = await supabase
-      .from("players")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const playerDoc = await adminDb.collection("players").doc(id).get();
+    const player = playerDoc.exists
+      ? ({ id: playerDoc.id, ...playerDoc.data() } as Player)
+      : null;
 
-    if (error || !player) {
+    if (!player) {
       return NextResponse.json(
         { error: "Joueur introuvable" },
         { status: 404 }
@@ -25,20 +24,24 @@ export async function GET(
 
     let target = null;
     if (player.target_id) {
-      const { data: targetPlayer } = await supabase
-        .from("players")
-        .select("id, name, account_id")
-        .eq("id", player.target_id)
-        .single();
+      const targetDoc = await adminDb
+        .collection("players")
+        .doc(player.target_id)
+        .get();
+      const targetPlayer = targetDoc.exists
+        ? ({ id: targetDoc.id, ...targetDoc.data() } as Player)
+        : null;
 
       if (targetPlayer) {
         let photoUrl: string | null = null;
         if (targetPlayer.account_id) {
-          const { data: acc } = await supabase
-            .from("accounts")
-            .select("photo_url")
-            .eq("id", targetPlayer.account_id)
-            .single();
+          const accDoc = await adminDb
+            .collection("accounts")
+            .doc(targetPlayer.account_id)
+            .get();
+          const acc = accDoc.exists
+            ? ({ id: accDoc.id, ...accDoc.data() } as Account)
+            : null;
           photoUrl = acc?.photo_url ?? null;
         }
         target = {
@@ -49,9 +52,10 @@ export async function GET(
       }
     }
 
-    const mission = player.mission_id
+    const missionFromId = player.mission_id
       ? getMissionById(player.mission_id)
       : null;
+    const mission = missionFromId || (player.mission_description ? { id: 0, description: player.mission_description, category: "action", difficulty: "medium" } : null);
 
     return NextResponse.json({ player, target, mission });
   } catch {

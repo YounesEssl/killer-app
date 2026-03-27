@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { adminDb } from "@/lib/firebase/server";
 import { generateJoinCode } from "@/lib/utils";
 
 export async function POST(request: Request) {
@@ -13,42 +13,39 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createServerClient();
     let joinCode = generateJoinCode();
 
     // Ensure unique join code
-    let existing = await supabase
-      .from("games")
-      .select("id")
-      .eq("join_code", joinCode)
-      .single();
+    let existing = await adminDb
+      .collection("games")
+      .where("join_code", "==", joinCode)
+      .limit(1)
+      .get();
 
-    while (existing.data) {
+    while (!existing.empty) {
       joinCode = generateJoinCode();
-      existing = await supabase
-        .from("games")
-        .select("id")
-        .eq("join_code", joinCode)
-        .single();
+      existing = await adminDb
+        .collection("games")
+        .where("join_code", "==", joinCode)
+        .limit(1)
+        .get();
     }
 
-    const { data: game, error } = await supabase
-      .from("games")
-      .insert({
-        name,
-        join_code: joinCode,
-        admin_password: adminPassword,
-        status: "lobby" as const,
-        winner_id: null,
-      })
-      .select()
-      .single();
+    const now = new Date().toISOString();
+    const ref = adminDb.collection("games").doc();
+    const gameData = {
+      name,
+      join_code: joinCode,
+      admin_password: adminPassword,
+      status: "lobby" as const,
+      winner_id: null,
+      created_at: now,
+      started_at: null,
+      finished_at: null,
+    };
+    await ref.set(gameData);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json(game);
+    return NextResponse.json({ id: ref.id, ...gameData });
   } catch {
     return NextResponse.json(
       { error: "Erreur serveur" },

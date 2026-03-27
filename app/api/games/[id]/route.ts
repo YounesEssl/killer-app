@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { adminDb } from "@/lib/firebase/server";
 
 export async function GET(
   request: Request,
@@ -7,28 +7,26 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const supabase = createServerClient();
 
-    const { data: game, error } = await supabase
-      .from("games")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const gameDoc = await adminDb.collection("games").doc(id).get();
 
-    if (error || !game) {
+    if (!gameDoc.exists) {
       return NextResponse.json(
         { error: "Partie introuvable" },
         { status: 404 }
       );
     }
 
-    const { data: players } = await supabase
-      .from("players")
-      .select("*")
-      .eq("game_id", id)
-      .order("joined_at", { ascending: true });
+    const game = { id: gameDoc.id, ...gameDoc.data() };
 
-    return NextResponse.json({ game, players: players || [] });
+    const playersSnap = await adminDb
+      .collection("players")
+      .where("game_id", "==", id)
+      .get();
+
+    const players = playersSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+    return NextResponse.json({ game, players });
   } catch {
     return NextResponse.json(
       { error: "Erreur serveur" },

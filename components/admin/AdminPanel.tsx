@@ -1,12 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { Game, Player, KillEvent } from "@/lib/supabase/types";
+import type { Game, Player, KillEvent, Account } from "@/lib/firebase/types";
 import { getMissionById } from "@/lib/missions";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import { formatRelativeTime } from "@/lib/utils";
-import { supabase } from "@/lib/supabase/client";
+import { db } from "@/lib/firebase/client";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+} from "firebase/firestore";
+import { batchGetByIds } from "@/lib/firebase/helpers";
 import {
   Users,
   Skull,
@@ -40,14 +47,12 @@ export default function AdminPanel({
     const accountIds = playerList.filter((p) => p.account_id).map((p) => p.account_id!);
     if (accountIds.length === 0) return;
 
-    const { data } = await supabase
-      .from("accounts")
-      .select("id, photo_url")
-      .in("id", accountIds);
-
-    if (data) {
-      setPhotoMap(Object.fromEntries(data.map((a) => [a.id, a.photo_url])));
-    }
+    const accounts = await batchGetByIds<Account>(db, "accounts", accountIds);
+    const map: Record<string, string | null> = {};
+    accounts.forEach((acc, id) => {
+      map[id] = acc.photo_url ?? null;
+    });
+    setPhotoMap(map);
   };
 
   useEffect(() => {
@@ -55,36 +60,35 @@ export default function AdminPanel({
   }, [players]);
 
   useEffect(() => {
-    const channel = supabase
-      .channel(`admin-${game.id}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "players", filter: `game_id=eq.${game.id}` },
-        () => {
-          supabase
-            .from("players")
-            .select("*")
-            .eq("game_id", game.id)
-            .order("joined_at", { ascending: true })
-            .then(({ data }) => {
-              if (data) {
-                setPlayers(data);
-                fetchPhotos(data);
-              }
-            });
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "kill_events", filter: `game_id=eq.${game.id}` },
-        (payload) => {
-          setEvents((prev) => [payload.new as KillEvent, ...prev]);
-        }
-      )
-      .subscribe();
+    // Real-time players
+    const playersQuery = query(
+      collection(db, "players"),
+      where("game_id", "==", game.id)
+    );
+
+    const unsubPlayers = onSnapshot(playersQuery, (snap) => {
+      const data = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() }) as Player)
+        .sort((a, b) => (a.joined_at ?? "").localeCompare(b.joined_at ?? ""));
+      setPlayers(data);
+      fetchPhotos(data);
+    });
+
+    // Real-time kill events
+    const eventsQuery = query(
+      collection(db, "kill_events"),
+      where("game_id", "==", game.id)
+    );
+
+    const unsubEvents = onSnapshot(eventsQuery, (snap) => {
+      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as KillEvent);
+      list.sort((a, b) => b.killed_at.localeCompare(a.killed_at));
+      setEvents(list);
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      unsubPlayers();
+      unsubEvents();
     };
   }, [game.id]);
 

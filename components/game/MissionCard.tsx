@@ -59,36 +59,6 @@ export default function MissionCard({
         <p className="text-lg text-gray-300 leading-relaxed">
           {mission?.description || "Mission en cours de chargement..."}
         </p>
-        {mission && (
-          <div className="flex items-center gap-2 pt-1">
-            <span
-              className={`text-[10px] px-3 py-1 rounded-full font-bold font-[family-name:var(--font-display)] uppercase tracking-wider border ${
-                mission.difficulty === "easy"
-                  ? "bg-green-500/15 text-green-400 border-green-500/20"
-                  : mission.difficulty === "medium"
-                  ? "bg-amber-500/15 text-amber-400 border-amber-500/20"
-                  : "bg-red-500/15 text-red-400 border-red-500/20"
-              }`}
-            >
-              {mission.difficulty === "easy"
-                ? "Facile"
-                : mission.difficulty === "medium"
-                ? "Moyen"
-                : "Difficile"}
-            </span>
-            {(() => {
-              const cat = categoryIcons[mission.category as keyof typeof categoryIcons];
-              if (!cat) return null;
-              const CatIcon = cat.icon;
-              return (
-                <span className="flex items-center gap-1 text-[10px] text-gray-500 uppercase tracking-wider px-3 py-1 rounded-full border border-white/10 bg-white/5">
-                  <CatIcon className="w-3.5 h-3.5" />
-                  {cat.label}
-                </span>
-              );
-            })()}
-          </div>
-        )}
       </div>
     </motion.div>
   );

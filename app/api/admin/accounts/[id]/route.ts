@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { adminDb, adminStorage } from "@/lib/firebase/server";
 import { normalizeUsername, generateSecretCode } from "@/lib/utils";
+import type { Account } from "@/lib/firebase/types";
 
 function checkAdmin(request: Request) {
   const secret = request.headers.get("x-admin-secret");
@@ -19,19 +20,15 @@ export async function GET(
   }
 
   const { id } = await params;
-  const supabase = createServerClient();
 
-  const { data, error } = await supabase
-    .from("accounts")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const doc = await adminDb.collection("accounts").doc(id).get();
 
-  if (error || !data) {
+  if (!doc.exists) {
     return NextResponse.json({ error: "Compte introuvable" }, { status: 404 });
   }
 
-  return NextResponse.json({ account: data });
+  const account = { id: doc.id, ...doc.data() } as Account;
+  return NextResponse.json({ account });
 }
 
 export async function PATCH(
@@ -45,7 +42,6 @@ export async function PATCH(
   try {
     const { id } = await params;
     const { username, regenerateCode } = await request.json();
-    const supabase = createServerClient();
 
     const updates: Record<string, string> = {
       updated_at: new Date().toISOString(),
@@ -55,14 +51,13 @@ export async function PATCH(
       const normalized = normalizeUsername(username);
 
       // Check uniqueness (exclude self)
-      const { data: existing } = await supabase
-        .from("accounts")
-        .select("id")
-        .eq("username_normalized", normalized)
-        .neq("id", id)
-        .single();
+      const existingSnapshot = await adminDb
+        .collection("accounts")
+        .where("username_normalized", "==", normalized)
+        .where("__name__", "!=", id)
+        .get();
 
-      if (existing) {
+      if (!existingSnapshot.empty) {
         return NextResponse.json(
           { error: "Ce nom existe deja" },
           { status: 400 }
@@ -77,18 +72,13 @@ export async function PATCH(
       updates.secret_code = generateSecretCode();
     }
 
-    const { data, error } = await supabase
-      .from("accounts")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
+    const docRef = adminDb.collection("accounts").doc(id);
+    await docRef.update(updates);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    const updatedDoc = await docRef.get();
+    const account = { id: updatedDoc.id, ...updatedDoc.data() } as Account;
 
-    return NextResponse.json({ account: data });
+    return NextResponse.json({ account });
   } catch {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
@@ -103,19 +93,20 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  const supabase = createServerClient();
 
   // Delete photo from storage
-  await supabase.storage.from("avatars").remove([`${id}.jpg`]);
+  await adminStorage
+    .bucket()
+    .file(`avatars/${id}.jpg`)
+    .delete({ ignoreNotFound: true });
 
   // Delete account
-  const { error } = await supabase
-    .from("accounts")
-    .delete()
-    .eq("id", id);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  try {
+    await adminDb.collection("accounts").doc(id).delete();
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

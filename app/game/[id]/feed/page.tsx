@@ -2,8 +2,9 @@
 
 import { use, useEffect, useState } from "react";
 import { useGame } from "@/hooks/useGame";
-import { supabase } from "@/lib/supabase/client";
-import type { Player } from "@/lib/supabase/types";
+import { db } from "@/lib/firebase/client";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import type { Player } from "@/lib/firebase/types";
 import KillFeed from "@/components/game/KillFeed";
 import BottomNav from "@/components/ui/BottomNav";
 import Badge from "@/components/ui/Badge";
@@ -25,11 +26,8 @@ function FeedPageContent({ params }: { params: Promise<{ id: string }> }) {
   const [players, setPlayers] = useState<Player[]>([]);
 
   useEffect(() => {
-    supabase
-      .from("players")
-      .select("*")
-      .eq("game_id", gameId)
-      .then(({ data }) => { if (data) setPlayers(data); });
+    getDocs(query(collection(db, "players"), where("game_id", "==", gameId)))
+      .then((snap) => setPlayers(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Player)));
   }, [gameId]);
 
   const alivePlayers = players.filter((p) => p.is_alive);

@@ -1,57 +1,54 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/lib/supabase/client";
-import type { KillEvent } from "@/lib/supabase/types";
+import { db } from "@/lib/firebase/client";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  getDocs,
+} from "firebase/firestore";
+import type { KillEvent } from "@/lib/firebase/types";
 
 export function useKillFeed(gameId: string) {
   const [events, setEvents] = useState<KillEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchEvents = useCallback(async () => {
-    const { data } = await supabase
-      .from("kill_events")
-      .select("*")
-      .eq("game_id", gameId)
-      .order("killed_at", { ascending: false });
-
-    if (data) {
-      setEvents(data);
-    }
+    const q = query(
+      collection(db, "kill_events"),
+      where("game_id", "==", gameId)
+    );
+    const snap = await getDocs(q);
+    const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as KillEvent);
+    list.sort((a, b) => b.killed_at.localeCompare(a.killed_at));
+    setEvents(list);
     setIsLoading(false);
   }, [gameId]);
 
   useEffect(() => {
-    fetchEvents();
+    const q = query(
+      collection(db, "kill_events"),
+      where("game_id", "==", gameId)
+    );
 
-    const channel = supabase
-      .channel(`kill-feed-${gameId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "kill_events",
-          filter: `game_id=eq.${gameId}`,
-        },
-        (payload) => {
-          setEvents((prev) => [payload.new as KillEvent, ...prev]);
-        }
-      )
-      .subscribe((status) => {
-        if (status === "CHANNEL_ERROR") {
-          console.error("[useKillFeed] Realtime subscription error, falling back to polling");
-        }
-      });
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as KillEvent);
+        list.sort((a, b) => b.killed_at.localeCompare(a.killed_at));
+        setEvents(list);
+        setIsLoading(false);
+      },
+      (err) => {
+        console.error("[useKillFeed] Realtime error:", err);
+        setIsLoading(false);
+      }
+    );
 
-    // Fallback polling every 5s
-    const interval = setInterval(fetchEvents, 5000);
-
-    return () => {
-      clearInterval(interval);
-      supabase.removeChannel(channel);
-    };
-  }, [gameId, fetchEvents]);
+    return () => unsubscribe();
+  }, [gameId]);
 
   return { events, isLoading, refetch: fetchEvents };
 }

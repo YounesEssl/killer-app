@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAccount } from "@/hooks/useAccount";
@@ -13,6 +13,12 @@ export default function PhotoPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (!isLoading && !account) {
+      router.replace("/");
+    }
+  }, [isLoading, account, router]);
+
   if (isLoading) {
     return (
       <div className="min-h-dvh flex items-center justify-center bg-[#0a0f0d]">
@@ -22,7 +28,6 @@ export default function PhotoPage() {
   }
 
   if (!account) {
-    router.replace("/");
     return null;
   }
 
